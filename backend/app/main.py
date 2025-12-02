@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, users, billing, organizations, apikeys
+from app.api.v1 import auth, users, organizations, apikeys
+from app.api.v1 import billing as billing_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,9 +24,13 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
-app.include_router(billing.router, prefix="/api/v1/billing", tags=["Billing"])
+app.include_router(billing_router.router, prefix="/api/v1/billing", tags=["Billing & Subscriptions"])
 app.include_router(organizations.router, prefix="/api/v1/orgs", tags=["Organizations"])
 app.include_router(apikeys.router, prefix="/api/v1/apikeys", tags=["API Keys"])
+
+# Premium features (example)
+from app.api.v1 import premium
+app.include_router(premium.router, prefix="/api/v1/premium", tags=["Premium Features"])
 
 
 @app.get("/")

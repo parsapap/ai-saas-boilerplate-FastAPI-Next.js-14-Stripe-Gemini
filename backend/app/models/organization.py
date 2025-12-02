@@ -26,6 +26,7 @@ class Organization(Base):
     # Relationships
     memberships = relationship("Membership", back_populates="organization", cascade="all, delete-orphan")
     api_keys = relationship("ApiKey", back_populates="organization", cascade="all, delete-orphan")
+    subscription = relationship("Subscription", back_populates="organization", uselist=False, cascade="all, delete-orphan")
 
 
 class Membership(Base):
