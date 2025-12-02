@@ -1,14 +1,18 @@
 from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
+from datetime import datetime
+from functools import wraps
 from app.database import get_db
 from app.core.security import decode_token
 from app.crud import user as crud_user
 from app.crud import organization as crud_org
 from app.crud import api_key as crud_api_key
+from app.crud import subscription as crud_subscription
 from app.models.user import User
 from app.models.organization import Organization, MemberRole
+from app.models.subscription import PlanType, SubscriptionStatus
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -152,7 +156,7 @@ async def get_current_organization(
 
 
 async def require_org_role(
-    required_roles: list[MemberRole],
+    required_roles: List[MemberRole],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     current_org: Organization = Depends(get_current_organization)
@@ -186,4 +190,92 @@ async def require_admin(
     return await require_org_role([MemberRole.OWNER, MemberRole.ADMIN], db, current_user, current_org)
 
 
-from datetime import datetime
+# ============================================
+# SUBSCRIPTION / PLAN REQUIREMENTS
+# ============================================
+
+async def get_organization_subscription(
+    db: AsyncSession,
+    org: Organization
+):
+    """Get organization's subscription"""
+    subscription = await crud_subscription.get_subscription_by_org(db, org.id)
+    if not subscription:
+        # Create free subscription if doesn't exist
+        subscription = await crud_subscription.create_subscription(
+            db, org.id, PlanType.FREE, org.stripe_customer_id
+        )
+    return subscription
+
+
+async def require_plan(
+    required_plans: List[PlanType],
+    db: AsyncSession = Depends(get_db),
+    current_org: Organization = Depends(get_current_organization)
+):
+    """Check if organization has required plan"""
+    subscription = await get_organization_subscription(db, current_org)
+    
+    # Check if subscription is active
+    if subscription.status not in [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING]:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Subscription is not active. Please update your payment method."
+        )
+    
+    # Check plan type
+    if subscription.plan_type not in required_plans:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"This feature requires {' or '.join([p.value for p in required_plans])} plan"
+        )
+    
+    return subscription
+
+
+# Specific plan dependencies
+async def require_pro_plan(
+    db: AsyncSession = Depends(get_db),
+    current_org: Organization = Depends(get_current_organization)
+):
+    """Require Pro or Team plan"""
+    return await require_plan([PlanType.PRO, PlanType.TEAM], db, current_org)
+
+
+async def require_team_plan(
+    db: AsyncSession = Depends(get_db),
+    current_org: Organization = Depends(get_current_organization)
+):
+    """Require Team plan"""
+    return await require_plan([PlanType.TEAM], db, current_org)
+
+
+# Decorator for plan requirements
+def requires_plan(*plans: PlanType):
+    """
+    Decorator to require specific plan(s) for an endpoint
+    
+    Usage:
+        @router.get("/premium-feature")
+        @requires_plan(PlanType.PRO, PlanType.TEAM)
+        async def premium_feature(...):
+            ...
+    """
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Get db and org from kwargs (injected by FastAPI)
+            db = kwargs.get('db')
+            current_org = kwargs.get('current_org')
+            
+            if not db or not current_org:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Missing required dependencies"
+                )
+            
+            await require_plan(list(plans), db, current_org)
+            return await func(*args, **kwargs)
+        
+        return wrapper
+    return decorator
