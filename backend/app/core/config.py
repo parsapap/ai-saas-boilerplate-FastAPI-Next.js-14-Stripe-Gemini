@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: str
     STRIPE_WEBHOOK_SECRET: str
     
+    # AI APIs
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    
     # App
     APP_NAME: str = "FastAPI SaaS"
     APP_VERSION: str = "1.0.0"

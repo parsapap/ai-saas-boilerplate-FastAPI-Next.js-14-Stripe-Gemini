@@ -32,6 +32,10 @@ app.include_router(apikeys.router, prefix="/api/v1/apikeys", tags=["API Keys"])
 from app.api.v1 import premium
 app.include_router(premium.router, prefix="/api/v1/premium", tags=["Premium Features"])
 
+# AI endpoints
+from app.api.v1 import ai
+app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI & Chat"])
+
 
 @app.get("/")
 async def root():
