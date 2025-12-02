@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -15,3 +16,6 @@ class User(Base):
     stripe_customer_id = Column(String, nullable=True, unique=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    memberships = relationship("Membership", foreign_keys="[Membership.user_id]", back_populates="user")
