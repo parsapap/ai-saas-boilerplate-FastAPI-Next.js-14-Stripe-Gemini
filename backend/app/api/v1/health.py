@@ -20,12 +20,14 @@ async def health_check():
     }
 
 
-@router.get("/ready")
+@router.get("/ready", status_code=status.HTTP_200_OK)
 async def readiness_check(db: AsyncSession = Depends(get_db)):
     """
     Readiness check - verifies all dependencies are available
     Returns 200 if ready, 503 if not ready
     """
+    from fastapi.responses import JSONResponse
+    
     checks = {
         "database": False,
         "redis": False,
@@ -44,20 +46,22 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
         redis_client = redis.from_url(settings.REDIS_URL)
         await redis_client.ping()
         checks["redis"] = True
-        await redis_client.close()
+        await redis_client.aclose()  # Use aclose instead of close
     except Exception as e:
         checks["redis_error"] = str(e)
     
     # Overall status
     checks["overall"] = checks["database"] and checks["redis"]
     
-    status_code = status.HTTP_200_OK if checks["overall"] else status.HTTP_503_SERVICE_UNAVAILABLE
-    
-    return {
+    response_data = {
         "status": "ready" if checks["overall"] else "not_ready",
         "checks": checks,
         "timestamp": datetime.utcnow().isoformat()
-    }, status_code
+    }
+    
+    status_code = status.HTTP_200_OK if checks["overall"] else status.HTTP_503_SERVICE_UNAVAILABLE
+    
+    return JSONResponse(content=response_data, status_code=status_code)
 
 
 @router.get("/live")

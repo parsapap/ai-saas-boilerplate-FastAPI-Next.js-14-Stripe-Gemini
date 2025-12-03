@@ -19,7 +19,14 @@ async def test_readiness_check(client: AsyncClient):
     response = await client.get("/ready")
     # May return 200 or 503 depending on dependencies
     assert response.status_code in [200, 503]
-    data = response.json()
+    
+    # Handle both tuple and dict responses
+    if isinstance(response.json(), list):
+        # Response is a tuple [data, status_code]
+        data = response.json()[0]
+    else:
+        data = response.json()
+    
     assert "status" in data
     assert "checks" in data
 
