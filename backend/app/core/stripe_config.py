@@ -4,8 +4,8 @@ from decimal import Decimal
 # Stripe Price IDs (replace with your actual IDs from Stripe Dashboard)
 STRIPE_PRICES = {
     PlanType.FREE: None,  # Free plan has no Stripe price
-    PlanType.PRO: "price_pro_monthly",  # Replace with actual price ID
-    PlanType.TEAM: "price_team_monthly",  # Replace with actual price ID
+    PlanType.PRO: "price_1SaL4MJQFLCmojG3bVa6HbGt",  # Pro Plan - $29/month
+    PlanType.TEAM: "price_1SaL8SJQFLCmojG3vspXn8TA",  # Team Plan - $99/month
 }
 
 # Plan configurations

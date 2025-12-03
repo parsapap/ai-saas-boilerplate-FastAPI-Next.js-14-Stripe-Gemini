@@ -24,19 +24,20 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
             detail="Email already registered"
         )
     
-    # Create Stripe customer
+    # Create Stripe customer (optional - will be created later if needed)
+    stripe_customer_id = None
     try:
-        stripe_customer = stripe.Customer.create(
-            email=user_in.email,
-            name=user_in.full_name,
-            metadata={"source": "saas_registration"}
-        )
-        stripe_customer_id = stripe_customer.id
+        if stripe.api_key and stripe.api_key != "sk_test_dummy":
+            stripe_customer = stripe.Customer.create(
+                email=user_in.email,
+                name=user_in.full_name,
+                metadata={"source": "saas_registration"}
+            )
+            stripe_customer_id = stripe_customer.id
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create Stripe customer: {str(e)}"
-        )
+        # Log error but don't fail registration
+        print(f"Warning: Failed to create Stripe customer: {str(e)}")
+        # Customer will be created later when needed
     
     # Create user
     user = await crud_user.create_user(db, user_in=user_in, stripe_customer_id=stripe_customer_id)
