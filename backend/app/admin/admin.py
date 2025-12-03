@@ -120,7 +120,6 @@ class ApiKeyAdmin(ModelView, model=ApiKey):
     
     # Hide the actual key hash
     form_excluded_columns = [ApiKey.key_hash, ApiKey.created_at, ApiKey.last_used_at]
-    column_exclude_list = [ApiKey.key_hash]
     
     can_create = False  # Keys should be created via API
     can_edit = True
@@ -136,13 +135,14 @@ class AIUsageAdmin(ModelView, model=AIUsage):
     column_list = [
         AIUsage.id,
         AIUsage.organization_id,
-        AIUsage.provider,
+        AIUsage.date,
         AIUsage.model,
-        AIUsage.tokens_used,
-        AIUsage.cost,
+        AIUsage.message_count,
+        AIUsage.total_tokens,
+        AIUsage.estimated_cost,
         AIUsage.created_at
     ]
-    column_sortable_list = [AIUsage.id, AIUsage.created_at, AIUsage.tokens_used]
+    column_sortable_list = [AIUsage.id, AIUsage.created_at, AIUsage.total_tokens, AIUsage.date]
     column_default_sort = [(AIUsage.created_at, True)]
     
     can_create = False

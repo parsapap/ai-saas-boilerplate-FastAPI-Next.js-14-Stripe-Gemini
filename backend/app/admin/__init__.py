@@ -1,3 +1,3 @@
-from .admin import admin
+from .admin import setup_admin
 
-__all__ = ["admin"]
+__all__ = ["setup_admin"]
