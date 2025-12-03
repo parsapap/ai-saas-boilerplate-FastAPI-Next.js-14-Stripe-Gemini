@@ -1,8 +1,18 @@
-# 🚀 AI SaaS Boilerplate - The Insanely Complete Starter Kit
+# 🚀 FastAPI AI SaaS - Production-Ready Boilerplate
 
-**Stop wasting weeks on boilerplate. Start building your AI SaaS in minutes.**
+**Complete FastAPI backend with Multi-Tenant, Stripe Billing, and AI Integration**
 
-This is the most complete, production-ready AI SaaS boilerplate you'll find. FastAPI backend + Next.js 14 frontend + Docker + Authentication + Payments + AI Integration. Everything you need, nothing you don't.
+Stop wasting weeks on boilerplate. Get a production-ready FastAPI SaaS backend running in 2 minutes.
+
+## ⚡ Quick Start
+
+```bash
+./start.sh
+```
+
+That's it! Your API is now running at http://localhost:8000
+
+📖 **[Read Quick Start Guide →](QUICK_START.md)**
 
 ## 🔥 What's Inside
 
