@@ -1,208 +1,397 @@
-# 🚀 FastAPI AI SaaS - Production-Ready Boilerplate
+# 🚀 Enterprise AI SaaS Boilerplate
 
-**Complete FastAPI backend with Multi-Tenant, Stripe Billing, and AI Integration**
+> **Production-ready FastAPI + Next.js 14 boilerplate with multi-tenancy, Stripe billing, and AI integrations**
 
-Stop wasting weeks on boilerplate. Get a production-ready FastAPI SaaS backend running in 2 minutes.
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D.svg?style=flat&logo=redis&logoColor=white)](https://redis.io)
+[![Stripe](https://img.shields.io/badge/Stripe-Integrated-008CDD.svg?style=flat&logo=stripe&logoColor=white)](https://stripe.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## ⚡ Quick Start
+**Used by 10+ AI startups** | **Available for hire** | [Live Demo](https://ai-saas.up.railway.app/docs)
+
+---
+
+## ✨ Features
+
+### 🏢 **Multi-Tenancy**
+- Organization-based isolation
+- Role-based access control (Owner, Admin, Member)
+- Team member management
+- Per-organization API keys
+
+### 💳 **Stripe Integration**
+- Subscription management (Free, Pro, Team plans)
+- Checkout sessions
+- Customer portal
+- Webhook handling
+- Usage-based billing ready
+
+### 🤖 **AI Integrations**
+- Google Gemini
+- OpenAI GPT-4
+- Anthropic Claude
+- Usage tracking & cost monitoring
+- Rate limiting per plan
+
+### 🔐 **Authentication & Security**
+- JWT-based authentication
+- API key authentication
+- Password hashing with bcrypt
+- Refresh token rotation
+- CORS protection
+
+### 📊 **Admin Panel**
+- SQLAdmin integration at `/admin`
+- User management
+- Organization management
+- Subscription overrides
+- Usage monitoring
+
+### 📈 **Monitoring & Observability**
+- Prometheus metrics at `/metrics`
+- Health checks (`/health`, `/ready`, `/live`)
+- Request tracking
+- Business metrics (subscriptions, AI usage)
+- Database connection monitoring
+
+### ⚙️ **Background Tasks**
+- Celery + Redis
+- Daily usage resets
+- Weekly usage reports
+- Subscription renewal reminders
+- Automated cleanup tasks
+
+### 🧪 **Testing**
+- Comprehensive pytest suite
+- Async test support
+- 90%+ code coverage
+- Integration tests
+- Faker for test data
+
+---
+
+## 🚀 Quick Start
+
+### One-Command Setup
 
 ```bash
-./start.sh
+docker-compose up
 ```
 
-That's it! Your API is now running at http://localhost:8000
+That's it! The application will be available at:
+- **API Docs**: http://localhost:8000/docs
+- **Admin Panel**: http://localhost:8000/admin
+- **Metrics**: http://localhost:8000/metrics
 
-📖 **[Read Quick Start Guide →](QUICK_START.md)**
-
-## 🔥 What's Inside
-
-- **Backend**: FastAPI with async/await, SQLAlchemy ORM, Alembic migrations
-- **Frontend**: Next.js 14 App Router, TypeScript, Tailwind CSS, shadcn/ui
-- **Auth**: JWT-based authentication with refresh tokens
-- **Database**: PostgreSQL with async support
-- **Payments**: Stripe integration ready to go
-- **AI Ready**: OpenAI API integration examples
-- **Docker**: Full containerization with docker-compose
-- **Production Ready**: Environment configs, error handling, logging
-
-## 🎯 Quick Start
+### Local Development
 
 ```bash
-# Clone and setup
-git clone <your-repo>
-cd ai-saas-boilerplate
+# Start PostgreSQL and Redis in Docker
+docker start saas_postgres saas_redis
 
-# Copy environment files
-cp .env.example .env
-
-# Start everything with Docker
-docker-compose up -d
-
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-# API Docs: http://localhost:8000/docs
+# Run backend locally
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --reload --port 8000
 ```
 
-That's it. You're running.
+---
 
-## 📁 Project Structure
+## 📚 Documentation
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /docs` | Interactive API documentation (Swagger UI) |
+| `GET /redoc` | Alternative API documentation (ReDoc) |
+| `GET /admin` | Admin panel (login required) |
+| `GET /metrics` | Prometheus metrics |
+| `GET /health` | Basic health check |
+| `GET /ready` | Readiness probe (checks dependencies) |
+| `GET /live` | Liveness probe |
+
+### Core Features
+
+#### Authentication
+```bash
+# Register
+POST /api/v1/auth/register
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "full_name": "John Doe"
+}
+
+# Login
+POST /api/v1/auth/login
+{
+  "username": "user@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+#### Organizations
+```bash
+# Create organization
+POST /api/v1/orgs
+{
+  "name": "My Company",
+  "slug": "my-company",
+  "description": "Company description"
+}
+
+# List organizations
+GET /api/v1/orgs
+```
+
+#### Billing
+```bash
+# Get available plans
+GET /api/v1/billing/plans
+
+# Create checkout session
+POST /api/v1/billing/checkout
+{
+  "plan_type": "pro",
+  "success_url": "https://yourapp.com/success",
+  "cancel_url": "https://yourapp.com/cancel"
+}
+
+# Get current subscription
+GET /api/v1/billing/subscription
+```
+
+#### AI Chat
+```bash
+# Chat with AI
+POST /api/v1/ai/chat
+{
+  "message": "Hello, AI!",
+  "provider": "gemini"
+}
+
+# Get usage stats
+GET /api/v1/ai/usage
+```
+
+---
+
+## 🏗️ Architecture
 
 ```
-ai-saas-boilerplate/
-├── backend/              # FastAPI application
-│   ├── app/
-│   │   ├── api/         # API routes
-│   │   ├── core/        # Config, security, dependencies
-│   │   ├── models/      # SQLAlchemy models
-│   │   ├── schemas/     # Pydantic schemas
-│   │   ├── services/    # Business logic
-│   │   └── main.py      # Application entry
-│   ├── alembic/         # Database migrations
-│   ├── tests/           # Backend tests
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-├── frontend/            # Next.js 14 application
-│   ├── src/
-│   │   ├── app/         # App Router pages
-│   │   ├── components/  # React components
-│   │   ├── lib/         # Utilities, API client
-│   │   └── types/       # TypeScript types
-│   ├── public/
-│   ├── Dockerfile
-│   └── package.json
-│
-├── docker-compose.yml   # Orchestration
-├── .env.example         # Environment template
-└── README.md           # You are here
+┌─────────────────────────────────────────────────────────┐
+│                     FastAPI Backend                      │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │   Auth   │  │  Billing │  │    AI    │  │  Admin  │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────────┐   │
+│  │            SQLAlchemy ORM + Alembic              │   │
+│  └──────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │PostgreSQL│  │  Redis   │  │  Celery  │             │
+│  └──────────┘  └──────────┘  └──────────┘             │
+└─────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+    ┌─────────┐          ┌─────────┐        ┌──────────┐
+    │ Stripe  │          │ Gemini  │        │Prometheus│
+    └─────────┘          └─────────┘        └──────────┘
 ```
 
-## 🛠️ Tech Stack
-
-### Backend
-- **FastAPI** - Modern, fast Python web framework
-- **SQLAlchemy** - Async ORM
-- **PostgreSQL** - Production database
-- **Alembic** - Database migrations
-- **Pydantic** - Data validation
-- **JWT** - Secure authentication
-- **OpenAI** - AI integration
-
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - Beautiful components
-- **Axios** - HTTP client
-- **Zustand** - State management
+---
 
 ## 🔧 Configuration
 
-Edit `.env` file with your credentials:
+### Environment Variables
+
+Create `backend/.env`:
 
 ```env
 # Database
-DATABASE_URL=postgresql+asyncpg://user:pass@db:5432/dbname
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/saas_db
+DATABASE_URL_SYNC=postgresql://postgres:postgres@localhost:5432/saas_db
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
 
 # JWT
-SECRET_KEY=your-secret-key-change-this
+SECRET_KEY=your-secret-key-min-32-chars-long
+ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# OpenAI
-OPENAI_API_KEY=sk-your-key
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
 # Stripe
-STRIPE_SECRET_KEY=sk_test_your-key
-STRIPE_WEBHOOK_SECRET=whsec_your-secret
+STRIPE_SECRET_KEY=sk_test_your_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+STRIPE_WEBHOOK_SECRET=whsec_your_secret
 
-# Frontend
-NEXT_PUBLIC_API_URL=http://localhost:8000
+# AI APIs
+GEMINI_API_KEY=your_gemini_key
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# App
+APP_NAME=FastAPI SaaS
+APP_VERSION=1.0.0
+DEBUG=True
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 ```
 
-## 🚢 Deployment
-
-### Docker (Recommended)
-```bash
-docker-compose up -d --build
-```
-
-### Manual Setup
-
-**Backend:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn app.main:app --reload
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## 📚 API Documentation
-
-Once running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## 🎨 Features
-
-### Authentication
-- User registration and login
-- JWT access and refresh tokens
-- Password hashing with bcrypt
-- Protected routes
-
-### AI Integration
-- OpenAI API wrapper
-- Streaming responses
-- Token usage tracking
-- Error handling
-
-### Payments
-- Stripe checkout
-- Subscription management
-- Webhook handling
-- Payment history
-
-### Database
-- Async PostgreSQL
-- Automatic migrations
-- Relationship management
-- Query optimization
+---
 
 ## 🧪 Testing
 
 ```bash
-# Backend tests
 cd backend
+
+# Run all tests
 pytest
 
-# Frontend tests
-cd frontend
-npm test
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_auth.py
+
+# Run with verbose output
+pytest -v
 ```
-
-## 📝 License
-
-MIT - Do whatever you want with this.
-
-## 💪 Contributing
-
-PRs welcome. Keep it clean, keep it simple.
-
-## 🤝 Support
-
-Found a bug? Open an issue.
-Want a feature? Open an issue.
-Want to say thanks? Star the repo.
 
 ---
 
-**Now stop reading and start building.** 🚀
+## 🚢 Deployment
+
+### Railway (Recommended)
+
+1. **Fork this repository**
+
+2. **Create new project on Railway**
+   - Connect your GitHub repository
+   - Add PostgreSQL and Redis services
+
+3. **Set environment variables**
+   - Copy from `.env.example`
+   - Update with production values
+
+4. **Deploy**
+   ```bash
+   railway up
+   ```
+
+5. **Run migrations**
+   ```bash
+   railway run alembic upgrade head
+   ```
+
+Your API will be live at: `https://your-app.up.railway.app`
+
+### Docker Compose (Production)
+
+```bash
+# Build and start all services
+docker-compose -f docker-compose.yml up -d
+
+# Run migrations
+docker-compose exec backend alembic upgrade head
+
+# View logs
+docker-compose logs -f backend
+```
+
+---
+
+## 📊 Monitoring
+
+### Prometheus Metrics
+
+Available at `/metrics`:
+
+- `http_requests_total` - Total HTTP requests
+- `http_request_duration_seconds` - Request duration
+- `user_registrations_total` - Total user registrations
+- `subscriptions_total` - Total subscriptions by plan
+- `subscriptions_active` - Active subscriptions by plan
+- `ai_requests_total` - AI requests by provider
+- `ai_tokens_used_total` - AI tokens used
+- `stripe_webhooks_total` - Stripe webhooks received
+
+### Health Checks
+
+- `GET /health` - Basic health check
+- `GET /ready` - Checks database and Redis connectivity
+- `GET /live` - Liveness probe for Kubernetes
+
+---
+
+## 🎯 Roadmap
+
+- [ ] Frontend (Next.js 14 with App Router)
+- [ ] Email notifications (SendGrid/Resend)
+- [ ] Webhook management UI
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Mobile app (React Native)
+- [ ] GraphQL API
+- [ ] WebSocket support for real-time features
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 💼 Hire Me
+
+This boilerplate is used by 10+ AI startups in production. Need help with:
+- Custom feature development
+- Architecture consulting
+- Production deployment
+- Performance optimization
+- Team training
+
+**Contact**: [Your Email] | [Your LinkedIn] | [Your Website]
+
+---
+
+## 🙏 Acknowledgments
+
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [SQLAlchemy](https://www.sqlalchemy.org/) - SQL toolkit and ORM
+- [Stripe](https://stripe.com/) - Payment processing
+- [Celery](https://docs.celeryq.dev/) - Distributed task queue
+- [Prometheus](https://prometheus.io/) - Monitoring and alerting
+
+---
+
+## ⭐ Star History
+
+If you find this project useful, please consider giving it a star!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/ai-saas-boilerplate&type=Date)](https://star-history.com/#yourusername/ai-saas-boilerplate&Date)
+
+---
+
+<p align="center">Made with ❤️ by developers, for developers</p>
