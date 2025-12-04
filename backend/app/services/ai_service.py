@@ -161,15 +161,6 @@ class AIService:
                 },
                 timeout=60.0,
             ) as response:
-                # Check for rate limiting
-                if response.status_code == 429:
-                    yield "⚠️ Rate limit reached. Please wait a moment and try again."
-                    return
-                    
-                if response.status_code != 200:
-                    yield f"❌ API Error: {response.status_code}"
-                    return
-                    
                 async for line in response.aiter_lines():
                     line = line.strip()
                     if not line:
