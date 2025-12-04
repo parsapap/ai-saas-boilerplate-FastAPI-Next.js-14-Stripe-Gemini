@@ -26,6 +26,7 @@ export function OrganizationSwitcher() {
     slug: "",
     description: "",
   });
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
     loadOrganizations();
@@ -70,6 +71,8 @@ export function OrganizationSwitcher() {
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', formData);
+    
     if (!formData.name.trim() || !formData.slug.trim()) {
       toast.error('Name and slug are required');
       return;
@@ -83,12 +86,14 @@ export function OrganizationSwitcher() {
 
     try {
       setCreating(true);
+      console.log('Creating organization...');
       const newOrg = await organizationApi.create(
         formData.name,
         formData.slug,
         formData.description || undefined
       );
       
+      console.log('Organization created:', newOrg);
       toast.success('Organization created successfully!');
       
       // Add to list and select it
@@ -99,6 +104,7 @@ export function OrganizationSwitcher() {
       
       // Reset form and close modal
       setFormData({ name: "", slug: "", description: "" });
+      setSlugManuallyEdited(false);
       setShowCreateModal(false);
       setIsOpen(false);
       
@@ -260,7 +266,7 @@ export function OrganizationSwitcher() {
                         setFormData({
                           ...formData,
                           name,
-                          slug: formData.slug || generateSlug(name),
+                          slug: slugManuallyEdited ? formData.slug : generateSlug(name),
                         });
                       }}
                       placeholder="Acme Corp"
@@ -277,9 +283,11 @@ export function OrganizationSwitcher() {
                     <input
                       type="text"
                       value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase() })}
+                      onChange={(e) => {
+                        setSlugManuallyEdited(true);
+                        setFormData({ ...formData, slug: e.target.value.toLowerCase() });
+                      }}
                       placeholder="acme-corp"
-                      pattern="^[a-z0-9-]+$"
                       disabled={creating}
                       className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
                       required
