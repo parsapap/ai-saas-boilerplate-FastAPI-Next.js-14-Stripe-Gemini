@@ -84,6 +84,12 @@ export default function ChatPage() {
         setIsLoading(false);
         setIsStreaming(true);
 
+        // Get current organization ID
+        const orgId = localStorage.getItem("current_org_id");
+        if (!orgId) {
+          throw new Error("Please select an organization first");
+        }
+
         // Call AI API with streaming
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat/stream`,
@@ -92,7 +98,7 @@ export default function ChatPage() {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-              "X-Current-Org": "1",
+              "X-Current-Org": orgId,
             },
             body: JSON.stringify({
               message: content,
