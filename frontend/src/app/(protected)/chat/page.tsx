@@ -69,7 +69,10 @@ export default function NewChatPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail || `Server error: ${response.status}`;
+        console.error("Chat API error:", response.status, errorData);
+        throw new Error(errorMessage);
       }
 
       const reader = response.body?.getReader();
