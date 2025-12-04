@@ -27,10 +27,12 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } catch (error: any) {
       toast.error(error.response?.data?.detail || "Invalid credentials");
-    } finally {
       setIsLoading(false);
     }
   };
