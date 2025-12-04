@@ -226,22 +226,24 @@ export function OrganizationSwitcher() {
       {/* Create Organization Modal */}
       <AnimatePresence>
         {showCreateModal && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !creating) {
+                setShowCreateModal(false);
+              }
+            }}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => !creating && setShowCreateModal(false)}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-black border border-white/10 rounded-xl p-6 w-full max-w-md relative"
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.2 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-black border border-white/10 rounded-xl p-6 w-full max-w-md"
-              >
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold">Create Organization</h2>
                   <button
@@ -320,6 +322,14 @@ export function OrganizationSwitcher() {
                     <button
                       type="submit"
                       disabled={creating || !formData.name.trim() || !formData.slug.trim()}
+                      onClick={(e) => {
+                        console.log('Button clicked!', {
+                          creating,
+                          name: formData.name,
+                          slug: formData.slug,
+                          disabled: creating || !formData.name.trim() || !formData.slug.trim()
+                        });
+                      }}
                       className="flex-1 px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {creating ? (
@@ -335,7 +345,6 @@ export function OrganizationSwitcher() {
                 </form>
               </motion.div>
             </motion.div>
-          </>
         )}
       </AnimatePresence>
     </>
