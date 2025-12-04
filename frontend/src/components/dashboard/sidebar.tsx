@@ -10,6 +10,7 @@ import {
   Users,
   Menu,
   X,
+  Key,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: MessageSquare, label: "Chat", href: "/chat" },
   { icon: Users, label: "Team", href: "/team" },
   { icon: CreditCard, label: "Billing", href: "/billing" },
+  { icon: Key, label: "API Keys", href: "/api-keys" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
