@@ -1,0 +1,68 @@
+import { create } from 'zustand';
+import { authApi } from '@/lib/api';
+
+interface User {
+  id: number;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+}
+
+interface AuthState {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, full_name: string) => Promise<void>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+
+  login: async (email: string, password: string) => {
+    const data = await authApi.login(email, password);
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    
+    const user = await authApi.getCurrentUser();
+    set({ user, isAuthenticated: true, isLoading: false });
+  },
+
+  register: async (email: string, password: string, full_name: string) => {
+    await authApi.register(email, password, full_name);
+    // Auto-login after registration
+    const data = await authApi.login(email, password);
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    
+    const user = await authApi.getCurrentUser();
+    set({ user, isAuthenticated: true, isLoading: false });
+  },
+
+  logout: () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    set({ user: null, isAuthenticated: false });
+  },
+
+  checkAuth: async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      set({ isLoading: false, isAuthenticated: false });
+      return;
+    }
+
+    try {
+      const user = await authApi.getCurrentUser();
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch (error) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      set({ user: null, isAuthenticated: false, isLoading: false });
+    }
+  },
+}));
