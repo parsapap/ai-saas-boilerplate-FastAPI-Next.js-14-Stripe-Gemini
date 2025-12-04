@@ -16,7 +16,7 @@ import { usePathname } from "next/navigation";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: MessageSquare, label: "Chats", href: "/chats" },
+  { icon: MessageSquare, label: "Chat", href: "/chat" },
   { icon: Users, label: "Team", href: "/team" },
   { icon: CreditCard, label: "Billing", href: "/billing" },
   { icon: Settings, label: "Settings", href: "/settings" },
