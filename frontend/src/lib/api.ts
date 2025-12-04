@@ -90,12 +90,12 @@ export const authApi = {
 
 export const organizationApi = {
   list: async () => {
-    const response = await api.get('/api/v1/organizations/');
+    const response = await api.get('/api/v1/orgs/');
     return response.data;
   },
 
   create: async (name: string, slug: string, description?: string) => {
-    const response = await api.post('/api/v1/organizations/', {
+    const response = await api.post('/api/v1/orgs/', {
       name,
       slug,
       description,
@@ -104,12 +104,12 @@ export const organizationApi = {
   },
 
   get: async (orgId: number) => {
-    const response = await api.get(`/api/v1/organizations/${orgId}`);
+    const response = await api.get(`/api/v1/orgs/${orgId}`);
     return response.data;
   },
 
   update: async (orgId: number, data: { name?: string; description?: string }) => {
-    const response = await api.patch(`/api/v1/organizations/${orgId}`, data);
+    const response = await api.patch(`/api/v1/orgs/${orgId}`, data);
     return response.data;
   },
 };
