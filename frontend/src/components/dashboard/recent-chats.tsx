@@ -49,7 +49,7 @@ export function RecentChats() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold mb-1">Recent Chats</h3>
-          <p className="text-sm text-white/60">Your latest conversations</p>
+          <p className="text-sm text-white/60">Your latest conversations (sample data)</p>
         </div>
         <button className="text-sm text-white/60 hover:text-white transition-colors duration-200">
           View all

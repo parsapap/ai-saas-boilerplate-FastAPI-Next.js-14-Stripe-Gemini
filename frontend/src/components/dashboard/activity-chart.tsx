@@ -32,7 +32,7 @@ export function ActivityChart() {
     >
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-1">Activity</h3>
-        <p className="text-sm text-white/60">Last 7 days usage</p>
+        <p className="text-sm text-white/60">Last 7 days usage (sample data)</p>
       </div>
 
       <ResponsiveContainer width="100%" height={250}>

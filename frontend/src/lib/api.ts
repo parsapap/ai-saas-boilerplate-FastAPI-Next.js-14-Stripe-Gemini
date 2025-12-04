@@ -124,3 +124,14 @@ export const aiApi = {
     return response.data;
   },
 };
+
+export const billingApi = {
+  getSubscription: async (orgId: number) => {
+    const response = await api.get('/api/v1/billing/subscription', {
+      headers: {
+        'X-Current-Org': orgId.toString(),
+      },
+    });
+    return response.data;
+  },
+};

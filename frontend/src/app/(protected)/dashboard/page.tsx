@@ -9,7 +9,7 @@ import { UsageChart } from "@/components/usage-chart";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { RecentChats } from "@/components/dashboard/recent-chats";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
-import { aiApi } from "@/lib/api";
+import { aiApi, billingApi } from "@/lib/api";
 import { toast } from "sonner";
 
 interface UsageData {
@@ -21,10 +21,21 @@ interface UsageData {
   models_breakdown: Record<string, number>;
 }
 
+interface SubscriptionData {
+  id: number;
+  organization_id: number;
+  plan_type: string;
+  status: string;
+  stripe_subscription_id: string | null;
+  current_period_start: string;
+  current_period_end: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -40,17 +51,29 @@ export default function DashboardPage() {
         return;
       }
 
-      const usage = await aiApi.getUsage(parseInt(orgId));
+      // Load both usage and subscription data
+      const [usage, sub] = await Promise.all([
+        aiApi.getUsage(parseInt(orgId)).catch(() => null),
+        billingApi.getSubscription(parseInt(orgId)).catch(() => null),
+      ]);
+      
       setUsageData(usage);
+      setSubscription(sub);
     } catch (error: any) {
       console.error('Failed to load dashboard data:', error);
-      // Don't show error toast for 402 (no subscription) - it's expected for new users
-      if (error.response?.status !== 402) {
-        toast.error('Failed to load dashboard data');
-      }
+      toast.error('Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getPlanDisplayName = (planType: string) => {
+    const names: Record<string, string> = {
+      'free': 'Free Plan',
+      'pro': 'Pro Plan',
+      'team': 'Team Plan',
+    };
+    return names[planType.toLowerCase()] || planType;
   };
 
   if (isLoading) {
@@ -68,9 +91,23 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="flex items-center justify-between"
       >
-        <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-        <p className="text-white/60">Welcome back! Here's your overview</p>
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
+          <p className="text-white/60">Welcome back! Here&apos;s your overview</p>
+        </div>
+        {subscription && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl"
+          >
+            <div className="text-sm text-white/60">Current Plan</div>
+            <div className="text-lg font-semibold">{getPlanDisplayName(subscription.plan_type)}</div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Stats Cards */}
