@@ -113,3 +113,14 @@ export const organizationApi = {
     return response.data;
   },
 };
+
+export const aiApi = {
+  getUsage: async (orgId: number) => {
+    const response = await api.get('/api/v1/ai/usage', {
+      headers: {
+        'X-Current-Org': orgId.toString(),
+      },
+    });
+    return response.data;
+  },
+};

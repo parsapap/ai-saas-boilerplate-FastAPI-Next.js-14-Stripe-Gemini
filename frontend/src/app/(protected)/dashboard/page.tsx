@@ -3,20 +3,55 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MessageSquare, TrendingUp, Zap, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { UsageChart } from "@/components/usage-chart";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { RecentChats } from "@/components/dashboard/recent-chats";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
+import { aiApi } from "@/lib/api";
+import { toast } from "sonner";
+
+interface UsageData {
+  total_messages: number;
+  total_tokens: number;
+  messages_limit: number | null;
+  tokens_limit: number | null;
+  usage_percentage: number;
+  models_breakdown: Record<string, number>;
+}
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
+    loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const orgId = localStorage.getItem('current_org_id');
+      
+      if (!orgId) {
+        toast.error('Please select an organization');
+        return;
+      }
+
+      const usage = await aiApi.getUsage(parseInt(orgId));
+      setUsageData(usage);
+    } catch (error: any) {
+      console.error('Failed to load dashboard data:', error);
+      // Don't show error toast for 402 (no subscription) - it's expected for new users
+      if (error.response?.status !== 402) {
+        toast.error('Failed to load dashboard data');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -42,23 +77,23 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Total Messages"
-          value="125"
+          value={usageData?.total_messages.toString() || "0"}
           icon={MessageSquare}
-          trend={{ value: 12, isPositive: true }}
+          trend={{ value: 0, isPositive: true }}
           delay={0.1}
         />
         <StatsCard
-          title="This Month"
-          value="45"
+          title="Usage This Month"
+          value={`${usageData?.usage_percentage.toFixed(0) || 0}%`}
           icon={TrendingUp}
-          trend={{ value: 8, isPositive: true }}
+          trend={{ value: 0, isPositive: true }}
           delay={0.2}
         />
         <StatsCard
-          title="Avg Response Time"
-          value="1.2s"
+          title="Messages Limit"
+          value={usageData?.messages_limit ? usageData.messages_limit.toString() : "Unlimited"}
           icon={Zap}
-          trend={{ value: 15, isPositive: false }}
+          trend={{ value: 0, isPositive: true }}
           delay={0.3}
         />
       </div>
@@ -78,7 +113,10 @@ export default function DashboardPage() {
             <p className="text-sm text-white/60">Monthly message quota</p>
           </div>
           <div className="h-64">
-            <UsageChart used={125} limit={1000} />
+            <UsageChart 
+              used={usageData?.total_messages || 0} 
+              limit={usageData?.messages_limit || 1000} 
+            />
           </div>
         </motion.div>
 
@@ -96,6 +134,7 @@ export default function DashboardPage() {
         transition={{ delay: 0.8, type: "spring", stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
+        onClick={() => router.push('/chat')}
         className="fixed bottom-8 right-8 w-16 h-16 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:shadow-white/20 transition-all duration-300 z-50"
         style={{
           animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
