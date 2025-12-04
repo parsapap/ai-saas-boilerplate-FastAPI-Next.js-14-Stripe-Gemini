@@ -70,8 +70,21 @@ export default function NewChatPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.detail || `Server error: ${response.status}`;
         console.error("Chat API error:", response.status, errorData);
+        
+        // Handle different error formats
+        let errorMessage = `Server error: ${response.status}`;
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // Validation errors
+            errorMessage = errorData.detail.map((err: any) => err.msg || JSON.stringify(err)).join(', ');
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else {
+            errorMessage = JSON.stringify(errorData.detail);
+          }
+        }
+        
         throw new Error(errorMessage);
       }
 
