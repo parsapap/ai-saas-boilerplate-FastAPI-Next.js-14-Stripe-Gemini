@@ -25,8 +25,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email: string, password: string) => {
     const data = await authApi.login(email, password);
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
     
     const user = await authApi.getCurrentUser();
     set({ user, isAuthenticated: true, isLoading: false });
@@ -36,20 +38,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     await authApi.register(email, password, full_name);
     // Auto-login after registration
     const data = await authApi.login(email, password);
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
     
     const user = await authApi.getCurrentUser();
     set({ user, isAuthenticated: true, isLoading: false });
   },
 
   logout: () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
     set({ user: null, isAuthenticated: false });
   },
 
   checkAuth: async () => {
+    if (typeof window === 'undefined') {
+      set({ isLoading: false, isAuthenticated: false });
+      return;
+    }
+
     const token = localStorage.getItem('access_token');
     if (!token) {
       set({ isLoading: false, isAuthenticated: false });
