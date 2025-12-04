@@ -3,6 +3,13 @@ from decimal import Decimal
 
 # AI Model configurations
 AI_MODELS = {
+    "gemini-2.0-flash": {
+        "provider": "google",
+        "name": "Gemini 2.0 Flash",
+        "max_tokens": 8192,
+        "cost_per_1k_input": Decimal("0.00035"),  # Same as 1.5 Flash
+        "cost_per_1k_output": Decimal("0.00105"),
+    },
     "gemini-1.5-flash": {
         "provider": "google",
         "name": "Gemini 1.5 Flash",
@@ -38,21 +45,21 @@ AI_LIMITS = {
     PlanType.FREE: {
         "messages_per_month": 50,
         "tokens_per_month": 50000,
-        "allowed_models": ["gemini-1.5-flash", "gpt-4o-mini"],
+        "allowed_models": ["gemini-2.0-flash", "gemini-1.5-flash", "gpt-4o-mini"],
         "max_tokens_per_request": 1024,
         "rate_limit_per_minute": 5,
     },
     PlanType.PRO: {
         "messages_per_month": 10000,
         "tokens_per_month": 10000000,  # 10M tokens
-        "allowed_models": ["gemini-1.5-flash", "gemini-1.5-pro", "claude-3-haiku", "gpt-4o-mini"],
+        "allowed_models": ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "claude-3-haiku", "gpt-4o-mini"],
         "max_tokens_per_request": 4096,
         "rate_limit_per_minute": 60,
     },
     PlanType.TEAM: {
         "messages_per_month": None,  # Unlimited
         "tokens_per_month": None,
-        "allowed_models": ["gemini-1.5-flash", "gemini-1.5-pro", "claude-3-haiku", "gpt-4o-mini"],
+        "allowed_models": ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "claude-3-haiku", "gpt-4o-mini"],
         "max_tokens_per_request": 8192,
         "rate_limit_per_minute": 300,
     }
