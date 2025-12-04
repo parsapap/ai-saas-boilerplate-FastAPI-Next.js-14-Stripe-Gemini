@@ -53,12 +53,18 @@ export default function NewChatPage() {
         throw new Error("Please select an organization first");
       }
 
+      // Get fresh token
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("Please login again");
+      }
+
       // Call AI API with streaming
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${token}`,
           "X-Current-Org": orgId,
         },
         body: JSON.stringify({
@@ -71,6 +77,14 @@ export default function NewChatPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("Chat API error:", response.status, errorData);
+        
+        // Handle 401 - redirect to login
+        if (response.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          window.location.href = "/login";
+          throw new Error("Session expired. Please login again.");
+        }
         
         // Handle different error formats
         let errorMessage = `Server error: ${response.status}`;
