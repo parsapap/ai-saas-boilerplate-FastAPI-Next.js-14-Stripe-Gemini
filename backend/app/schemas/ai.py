@@ -11,11 +11,12 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message] = Field(..., min_length=1)
     model: Literal[
+        "gemini-2.0-flash",
         "gemini-1.5-flash",
         "gemini-1.5-pro",
         "claude-3-haiku",
         "gpt-4o-mini"
-    ] = "gemini-1.5-flash"
+    ] = "gemini-2.0-flash"
     temperature: Optional[float] = Field(default=0.7, ge=0, le=2)
     max_tokens: Optional[int] = Field(default=1024, ge=1, le=8192)
     stream: bool = False

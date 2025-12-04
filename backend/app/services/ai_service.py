@@ -69,8 +69,13 @@ class AIService:
         max_tokens: int
     ) -> dict:
         """Gemini completion"""
-        # Map model name
-        model_name = "gemini-1.5-flash" if "flash" in model else "gemini-1.5-pro"
+        # Map model name to actual Gemini API model names
+        model_map = {
+            "gemini-1.5-flash": "gemini-1.5-flash-latest",
+            "gemini-1.5-pro": "gemini-1.5-pro-latest",
+            "gemini-2.0-flash": "gemini-2.0-flash-exp",
+        }
+        model_name = model_map.get(model, "gemini-2.0-flash-exp")
         
         # Initialize model
         gemini_model = genai.GenerativeModel(model_name)
@@ -128,7 +133,13 @@ class AIService:
         max_tokens: int
     ) -> AsyncGenerator[str, None]:
         """Gemini streaming"""
-        model_name = "gemini-1.5-flash" if "flash" in model else "gemini-1.5-pro"
+        # Map model name to actual Gemini API model names
+        model_map = {
+            "gemini-1.5-flash": "gemini-1.5-flash-latest",
+            "gemini-1.5-pro": "gemini-1.5-pro-latest",
+            "gemini-2.0-flash": "gemini-2.0-flash-exp",
+        }
+        model_name = model_map.get(model, "gemini-2.0-flash-exp")
         gemini_model = genai.GenerativeModel(model_name)
         
         # Get last user message
