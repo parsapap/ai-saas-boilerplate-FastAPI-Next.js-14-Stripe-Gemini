@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-import stripe
 from app.database import get_db
 from app.schemas.user import UserCreate, User as UserSchema
 from app.schemas.token import Token
@@ -10,7 +9,6 @@ from app.core.security import create_access_token, create_refresh_token, decode_
 from app.core.config import settings
 
 router = APIRouter()
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @router.post("/register", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
@@ -27,7 +25,9 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     # Create Stripe customer (optional - will be created later if needed)
     stripe_customer_id = None
     try:
-        if stripe.api_key and stripe.api_key != "sk_test_dummy":
+        import stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        if stripe.api_key and stripe.api_key != "sk_test_dummy" and not stripe.api_key.startswith("sk_test_dummy"):
             stripe_customer = stripe.Customer.create(
                 email=user_in.email,
                 name=user_in.full_name,
