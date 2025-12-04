@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { motion } from "framer-motion";
-import { LogOut, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProtectedLayout({
@@ -18,7 +19,8 @@ export default function ProtectedLayout({
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -45,50 +47,43 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="sticky top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-xl"
-      >
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-bold">AI SaaS</h1>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="h-16 border-b border-white/10 bg-black/20 backdrop-blur-xl flex items-center justify-between px-6 z-30"
+        >
+          <div className="flex items-center gap-4">
+            <div className="lg:hidden text-xl font-bold">AI SaaS</div>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-white/60">{user?.email}</span>
-            <Button
-              variant="ghost"
-              size="icon"
+          
+          <div className="flex items-center gap-4">
+            <OrganizationSwitcher />
+            
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-white/10 bg-white/5">
+              <User className="w-4 h-4 text-white/60" />
+              <span className="text-sm text-white/80">{user?.email}</span>
+            </div>
+
+            <button
               onClick={handleLogout}
+              className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300"
               title="Logout"
             >
-              <LogOut className="h-5 w-5" />
-            </Button>
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-      </motion.header>
+        </motion.header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 260,
-            damping: 20,
-            delay: 0.1,
-          }}
-        >
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto">
           {children}
-        </motion.div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
