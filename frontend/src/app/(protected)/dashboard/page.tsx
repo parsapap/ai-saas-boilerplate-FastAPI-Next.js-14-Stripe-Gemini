@@ -1,128 +1,121 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "@/store/auth";
-import { Sparkles, Users, CreditCard, Activity } from "lucide-react";
-
-const stats = [
-  {
-    title: "Total Users",
-    value: "2,543",
-    change: "+12.5%",
-    icon: Users,
-  },
-  {
-    title: "Active Subscriptions",
-    value: "1,234",
-    change: "+8.2%",
-    icon: CreditCard,
-  },
-  {
-    title: "AI Requests",
-    value: "45.2K",
-    change: "+23.1%",
-    icon: Sparkles,
-  },
-  {
-    title: "API Calls",
-    value: "892K",
-    change: "+15.3%",
-    icon: Activity,
-  },
-];
+import { MessageSquare, TrendingUp, Zap, Plus } from "lucide-react";
+import { StatsCard } from "@/components/dashboard/stats-card";
+import { UsageChart } from "@/components/usage-chart";
+import { ActivityChart } from "@/components/dashboard/activity-chart";
+import { RecentChats } from "@/components/dashboard/recent-chats";
+import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        transition={{ duration: 0.5 }}
       >
-        <h1 className="text-4xl font-bold tracking-tight">
-          Welcome back, {user?.full_name?.split(" ")[0] || "there"}
-        </h1>
-        <p className="mt-2 text-white/60">
-          Here's what's happening with your platform today.
-        </p>
+        <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
+        <p className="text-white/60">Welcome back! Here's your overview</p>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-              delay: index * 0.1,
-            }}
-          >
-            <Card className="glass">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-white/60" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-white/60">
-                  <span className="text-green-500">{stat.change}</span> from last month
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard
+          title="Total Messages"
+          value="125"
+          icon={MessageSquare}
+          trend={{ value: 12, isPositive: true }}
+          delay={0.1}
+        />
+        <StatsCard
+          title="This Month"
+          value="45"
+          icon={TrendingUp}
+          trend={{ value: 8, isPositive: true }}
+          delay={0.2}
+        />
+        <StatsCard
+          title="Avg Response Time"
+          value="1.2s"
+          icon={Zap}
+          trend={{ value: 15, isPositive: false }}
+          delay={0.3}
+        />
       </div>
 
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          type: "spring",
-          stiffness: 260,
-          damping: 20,
-          delay: 0.4,
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Usage Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          whileHover={{ y: -4, transition: { duration: 0.2 } }}
+          className="p-6 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 transition-all duration-300"
+        >
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-1">Usage</h3>
+            <p className="text-sm text-white/60">Monthly message quota</p>
+          </div>
+          <div className="h-64">
+            <UsageChart used={125} limit={1000} />
+          </div>
+        </motion.div>
+
+        {/* Activity Chart */}
+        <ActivityChart />
+      </div>
+
+      {/* Recent Chats */}
+      <RecentChats />
+
+      {/* Floating New Chat Button */}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.8, type: "spring", stiffness: 260, damping: 20 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="fixed bottom-8 right-8 w-16 h-16 bg-white text-black rounded-full shadow-2xl flex items-center justify-center hover:shadow-white/20 transition-all duration-300 z-50"
+        style={{
+          animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         }}
       >
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Your latest platform activities and updates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center space-x-4 rounded-lg border border-white/10 p-4"
-                >
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">
-                      New user registered
-                    </p>
-                    <p className="text-xs text-white/60">
-                      2 minutes ago
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <Plus className="w-6 h-6" />
+      </motion.button>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0%, 100% {
+              box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+              box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+            }
+          }
+        `
+      }} />
     </div>
   );
 }
