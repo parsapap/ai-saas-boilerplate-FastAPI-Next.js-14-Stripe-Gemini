@@ -140,6 +140,10 @@ class AIService:
         ]
         
         # Use OpenRouter API
+        import json
+        import logging
+        logger = logging.getLogger(__name__)
+        
         async with httpx.AsyncClient() as client:
             async with client.stream(
                 "POST",
@@ -158,20 +162,26 @@ class AIService:
                 timeout=60.0,
             ) as response:
                 async for line in response.aiter_lines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                        
                     if line.startswith("data: "):
-                        data = line[6:]
+                        data = line[6:].strip()
                         if data == "[DONE]":
                             break
+                        
                         try:
-                            import json
                             chunk_data = json.loads(data)
                             if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
                                 delta = chunk_data["choices"][0].get("delta", {})
                                 content = delta.get("content", "")
                                 if content:
                                     yield content
-                        except:
-                            pass
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Failed to parse SSE data: {data[:100]}")
+                        except Exception as e:
+                            logger.error(f"Error processing chunk: {e}")
     
     @staticmethod
     async def _claude_completion(messages, model, temperature, max_tokens) -> dict:
