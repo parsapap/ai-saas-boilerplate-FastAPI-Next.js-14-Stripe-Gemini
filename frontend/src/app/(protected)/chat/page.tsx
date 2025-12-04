@@ -128,28 +128,22 @@ export default function NewChatPage() {
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]" || !data) {
               continue;
             }
 
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                accumulatedContent += parsed.content;
+            // The backend sends plain text chunks, not JSON
+            accumulatedContent += data;
 
-                // Update message with accumulated content
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === aiMessageId
-                      ? { ...msg, content: accumulatedContent }
-                      : msg
-                  )
-                );
-              }
-            } catch (e) {
-              // Skip invalid JSON
-            }
+            // Update message with accumulated content
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === aiMessageId
+                  ? { ...msg, content: accumulatedContent }
+                  : msg
+              )
+            );
           }
         }
       }
