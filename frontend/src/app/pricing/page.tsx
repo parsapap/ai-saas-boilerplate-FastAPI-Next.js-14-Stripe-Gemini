@@ -21,7 +21,7 @@ const plans = [
       "1 organization",
       "Community access",
     ],
-    planType: "FREE",
+    planType: "free",
   },
   {
     name: "Pro",
@@ -36,7 +36,7 @@ const plans = [
       "API access",
       "Advanced analytics",
     ],
-    planType: "PRO",
+    planType: "pro",
     highlighted: true,
   },
   {
@@ -55,7 +55,7 @@ const plans = [
       "Custom contracts",
       "SLA guarantee",
     ],
-    planType: "TEAM",
+    planType: "team",
   },
 ];
 
@@ -82,7 +82,7 @@ export default function PricingPage() {
   }, [searchParams, router]);
 
   const handleSelectPlan = async (planType: string) => {
-    if (planType === "FREE") {
+    if (planType === "free") {
       if (isAuthenticated) {
         router.push("/dashboard");
       } else {
