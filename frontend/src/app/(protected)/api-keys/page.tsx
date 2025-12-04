@@ -31,8 +31,15 @@ export default function ApiKeysPage() {
 
   const loadKeys = async () => {
     try {
+      const orgId = localStorage.getItem('current_org_id');
+      if (!orgId) {
+        toast.error('Please select an organization');
+        setIsLoading(false);
+        return;
+      }
+      
       const response = await api.get("/api/v1/apikeys", {
-        headers: { "X-Current-Org": "1" },
+        headers: { "X-Current-Org": orgId },
       });
       setKeys(response.data);
     } catch (error) {
@@ -48,6 +55,12 @@ export default function ApiKeysPage() {
       return;
     }
 
+    const orgId = localStorage.getItem('current_org_id');
+    if (!orgId) {
+      toast.error('Please select an organization');
+      return;
+    }
+
     setIsCreating(true);
     try {
       const response = await api.post(
@@ -56,7 +69,7 @@ export default function ApiKeysPage() {
           name: newKeyName,
         },
         {
-          headers: { "X-Current-Org": "1" },
+          headers: { "X-Current-Org": orgId },
         }
       );
       setShowNewKey(response.data.key);
@@ -75,9 +88,15 @@ export default function ApiKeysPage() {
       return;
     }
 
+    const orgId = localStorage.getItem('current_org_id');
+    if (!orgId) {
+      toast.error('Please select an organization');
+      return;
+    }
+
     try {
       await api.delete(`/api/v1/apikeys/${keyId}`, {
-        headers: { "X-Current-Org": "1" },
+        headers: { "X-Current-Org": orgId },
       });
       setKeys(keys.filter((k) => k.id !== keyId));
       toast.success("API key revoked");
