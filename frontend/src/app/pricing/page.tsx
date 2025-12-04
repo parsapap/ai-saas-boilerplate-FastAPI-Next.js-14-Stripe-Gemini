@@ -99,17 +99,26 @@ export default function PricingPage() {
 
     setIsProcessing(true);
     try {
-      const response = await api.post("/api/v1/billing/checkout", {
-        plan_type: planType,
-        success_url: `${window.location.origin}/pricing?status=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${window.location.origin}/pricing?status=cancel`,
-      });
+      const response = await api.post(
+        "/api/v1/billing/checkout",
+        {
+          plan_type: planType,
+          success_url: `${window.location.origin}/pricing?status=success&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/pricing?status=cancel`,
+        },
+        {
+          headers: {
+            "X-Current-Org": "1", // TODO: Get from organization context
+          },
+        }
+      );
 
       // Redirect to Stripe Checkout
       if (response.data.checkout_url) {
         window.location.href = response.data.checkout_url;
       }
     } catch (error: any) {
+      console.error("Checkout error:", error);
       toast.error(
         error.response?.data?.detail || "Failed to create checkout session"
       );
