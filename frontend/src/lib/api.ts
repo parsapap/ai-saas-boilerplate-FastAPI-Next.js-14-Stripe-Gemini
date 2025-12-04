@@ -87,3 +87,29 @@ export const authApi = {
     return response.data;
   },
 };
+
+export const organizationApi = {
+  list: async () => {
+    const response = await api.get('/api/v1/organizations/');
+    return response.data;
+  },
+
+  create: async (name: string, slug: string, description?: string) => {
+    const response = await api.post('/api/v1/organizations/', {
+      name,
+      slug,
+      description,
+    });
+    return response.data;
+  },
+
+  get: async (orgId: number) => {
+    const response = await api.get(`/api/v1/organizations/${orgId}`);
+    return response.data;
+  },
+
+  update: async (orgId: number, data: { name?: string; description?: string }) => {
+    const response = await api.patch(`/api/v1/organizations/${orgId}`, data);
+    return response.data;
+  },
+};
