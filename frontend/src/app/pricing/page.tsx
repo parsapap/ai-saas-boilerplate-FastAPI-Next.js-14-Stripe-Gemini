@@ -99,6 +99,15 @@ export default function PricingPage() {
 
     setIsProcessing(true);
     try {
+      // Get current organization ID from localStorage
+      const currentOrgId = localStorage.getItem('current_org_id');
+      
+      if (!currentOrgId) {
+        toast.error("Please select an organization first");
+        router.push("/dashboard");
+        return;
+      }
+
       const response = await api.post(
         "/api/v1/billing/checkout",
         {
@@ -108,7 +117,7 @@ export default function PricingPage() {
         },
         {
           headers: {
-            "X-Current-Org": "1", // TODO: Get from organization context
+            "X-Current-Org": currentOrgId,
           },
         }
       );
@@ -119,9 +128,24 @@ export default function PricingPage() {
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
-      toast.error(
-        error.response?.data?.detail || "Failed to create checkout session"
-      );
+      
+      // Handle validation errors
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        
+        // Check if it's a validation error array
+        if (Array.isArray(detail)) {
+          const errorMessages = detail.map((err: any) => err.msg).join(', ');
+          toast.error(`Validation error: ${errorMessages}`);
+        } else if (typeof detail === 'string') {
+          toast.error(detail);
+        } else {
+          toast.error("Failed to create checkout session");
+        }
+      } else {
+        toast.error("Failed to create checkout session");
+      }
+      
       setIsProcessing(false);
     }
   };
