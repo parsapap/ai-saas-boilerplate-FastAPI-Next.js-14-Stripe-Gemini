@@ -12,16 +12,18 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  _hasHydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, full_name: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  _hasHydrated: false,
 
   login: async (email: string, password: string) => {
     const data = await authApi.login(email, password);
@@ -56,6 +58,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuth: async () => {
+    // Prevent multiple simultaneous checks
+    if (get()._hasHydrated) {
+      return;
+    }
+
+    set({ _hasHydrated: true });
+
     if (typeof window === 'undefined') {
       set({ isLoading: false, isAuthenticated: false });
       return;
