@@ -68,62 +68,52 @@ class AIService:
         temperature: float,
         max_tokens: int
     ) -> dict:
-        """Gemini completion"""
-        # Map model name to actual Gemini API model names
+        """Gemini completion via OpenRouter"""
+        import httpx
+        import json
+        
+        # Map model name to OpenRouter model names
         model_map = {
-            "gemini-1.5-flash": "gemini-1.5-flash-latest",
-            "gemini-1.5-pro": "gemini-1.5-pro-latest",
-            "gemini-2.0-flash": "gemini-2.0-flash-exp",
+            "gemini-1.5-flash": "google/gemini-flash-1.5",
+            "gemini-1.5-pro": "google/gemini-pro-1.5",
+            "gemini-2.0-flash": "google/gemini-2.0-flash-exp:free",
         }
-        model_name = model_map.get(model, "gemini-2.0-flash-exp")
+        openrouter_model = model_map.get(model, "google/gemini-2.0-flash-exp:free")
         
-        # Initialize model
-        gemini_model = genai.GenerativeModel(model_name)
+        # Convert messages to OpenRouter format
+        openrouter_messages = [
+            {"role": msg.role, "content": msg.content}
+            for msg in messages
+        ]
         
-        # Convert messages to Gemini format
-        chat_history = []
-        user_message = ""
-        
-        for msg in messages:
-            if msg.role == "system":
-                # Gemini doesn't have system role, prepend to first user message
-                continue
-            elif msg.role == "user":
-                user_message = msg.content
-            elif msg.role == "assistant":
-                chat_history.append({
-                    "role": "user",
-                    "parts": [user_message]
-                })
-                chat_history.append({
-                    "role": "model",
-                    "parts": [msg.content]
-                })
-        
-        # Start chat
-        chat = gemini_model.start_chat(history=chat_history)
-        
-        # Generate response
-        response = chat.send_message(
-            user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
+        # Use OpenRouter API
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": openrouter_model,
+                    "messages": openrouter_messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                },
+                timeout=60.0,
             )
-        )
-        
-        # Extract usage
-        usage = {
-            "input_tokens": response.usage_metadata.prompt_token_count,
-            "output_tokens": response.usage_metadata.candidates_token_count,
-            "total_tokens": response.usage_metadata.total_token_count
-        }
-        
-        return {
-            "message": response.text,
-            "usage": usage,
-            "finish_reason": "stop"
-        }
+            
+            result = response.json()
+            
+            return {
+                "message": result["choices"][0]["message"]["content"],
+                "usage": {
+                    "input_tokens": result.get("usage", {}).get("prompt_tokens", 0),
+                    "output_tokens": result.get("usage", {}).get("completion_tokens", 0),
+                    "total_tokens": result.get("usage", {}).get("total_tokens", 0),
+                },
+                "finish_reason": result["choices"][0].get("finish_reason", "stop")
+            }
     
     @staticmethod
     async def _gemini_stream(
@@ -132,32 +122,56 @@ class AIService:
         temperature: float,
         max_tokens: int
     ) -> AsyncGenerator[str, None]:
-        """Gemini streaming"""
-        # Map model name to actual Gemini API model names
+        """Gemini streaming via OpenRouter"""
+        import httpx
+        
+        # Map model name to OpenRouter model names
         model_map = {
-            "gemini-1.5-flash": "gemini-1.5-flash-latest",
-            "gemini-1.5-pro": "gemini-1.5-pro-latest",
-            "gemini-2.0-flash": "gemini-2.0-flash-exp",
+            "gemini-1.5-flash": "google/gemini-flash-1.5",
+            "gemini-1.5-pro": "google/gemini-pro-1.5",
+            "gemini-2.0-flash": "google/gemini-2.0-flash-exp:free",
         }
-        model_name = model_map.get(model, "gemini-2.0-flash-exp")
-        gemini_model = genai.GenerativeModel(model_name)
+        openrouter_model = model_map.get(model, "google/gemini-2.0-flash-exp:free")
         
-        # Get last user message
-        user_message = messages[-1].content
+        # Convert messages to OpenRouter format
+        openrouter_messages = [
+            {"role": msg.role, "content": msg.content}
+            for msg in messages
+        ]
         
-        # Stream response
-        response = gemini_model.generate_content(
-            user_message,
-            generation_config=genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
-            ),
-            stream=True
-        )
-        
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
+        # Use OpenRouter API
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST",
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": openrouter_model,
+                    "messages": openrouter_messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "stream": True,
+                },
+                timeout=60.0,
+            ) as response:
+                async for line in response.aiter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            import json
+                            chunk_data = json.loads(data)
+                            if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
+                                delta = chunk_data["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield content
+                        except:
+                            pass
     
     @staticmethod
     async def _claude_completion(messages, model, temperature, max_tokens) -> dict:
