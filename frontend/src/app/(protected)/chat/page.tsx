@@ -68,7 +68,12 @@ export default function NewChatPage() {
           "X-Current-Org": orgId,
         },
         body: JSON.stringify({
-          message: content,
+          messages: [
+            {
+              role: "user",
+              content: content,
+            },
+          ],
           model: "gemini-1.5-flash",
           stream: true,
         }),
