@@ -86,7 +86,7 @@ export default function ChatPage() {
 
         // Call AI API with streaming
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat`,
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat/stream`,
           {
             method: "POST",
             headers: {

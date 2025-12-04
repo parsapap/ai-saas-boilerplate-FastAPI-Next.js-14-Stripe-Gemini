@@ -48,12 +48,12 @@ export default function NewChatPage() {
       setIsStreaming(true);
 
       // Call AI API with streaming
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "X-Current-Org": "1", // TODO: Get from context
+          "X-Current-Org": "1",
         },
         body: JSON.stringify({
           message: content,
