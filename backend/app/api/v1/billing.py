@@ -21,13 +21,19 @@ from app.core.stripe_config import STRIPE_PRICES, PLAN_CONFIGS
 import logging
 
 router = APIRouter()
-stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
+
+# Initialize Stripe lazily to avoid import errors
+def init_stripe():
+    if not hasattr(init_stripe, '_initialized'):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        init_stripe._initialized = True
 
 
 @router.get("/plans", response_model=List[PlanInfo])
 async def get_available_plans():
     """Get all available subscription plans"""
+    init_stripe()
     plans = []
     for plan_type, config in PLAN_CONFIGS.items():
         plans.append(PlanInfo(
@@ -68,6 +74,7 @@ async def create_checkout_session(
     current_org: Organization = Depends(get_current_organization)
 ):
     """Create Stripe checkout session for subscription"""
+    init_stripe()
     
     # Validate plan
     if request.plan_type == PlanType.FREE:
@@ -141,6 +148,7 @@ async def create_customer_portal_session(
     current_org: Organization = Depends(get_current_organization)
 ):
     """Create Stripe customer portal session"""
+    init_stripe()
     if not current_org.stripe_customer_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -165,6 +173,7 @@ async def create_customer_portal_session(
 @router.post("/webhook/stripe")
 async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Stripe webhooks"""
+    init_stripe()
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
     
