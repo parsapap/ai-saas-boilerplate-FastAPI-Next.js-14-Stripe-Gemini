@@ -58,12 +58,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
-    // Prevent multiple simultaneous checks
-    if (get()._hasHydrated) {
+    const state = get();
+    
+    // If already authenticated with user data, skip check
+    if (state.isAuthenticated && state.user) {
       return;
     }
 
-    set({ _hasHydrated: true });
+    // If already checking (loading), skip
+    if (state.isLoading && state._hasHydrated) {
+      return;
+    }
+
+    set({ _hasHydrated: true, isLoading: true });
 
     if (typeof window === 'undefined') {
       set({ isLoading: false, isAuthenticated: false });
