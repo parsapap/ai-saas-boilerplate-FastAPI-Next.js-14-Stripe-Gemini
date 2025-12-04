@@ -22,6 +22,10 @@ const menuItems = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
+const publicMenuItems = [
+  { icon: CreditCard, label: "Pricing", href: "/pricing" },
+];
+
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
