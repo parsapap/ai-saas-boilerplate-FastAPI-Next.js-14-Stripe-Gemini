@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Building2, Check, X, Loader2 } from "lucide-react";
 import { organizationApi } from "@/lib/api";
@@ -27,8 +28,10 @@ export function OrganizationSwitcher() {
     description: "",
   });
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     loadOrganizations();
   }, []);
 
@@ -223,14 +226,15 @@ export function OrganizationSwitcher() {
         </AnimatePresence>
       </div>
 
-      {/* Create Organization Modal */}
-      <AnimatePresence>
-        {showCreateModal && (
+      {/* Create Organization Modal - Rendered via Portal */}
+      {mounted && showCreateModal && createPortal(
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+            style={{ margin: 0 }}
             onClick={(e) => {
               if (e.target === e.currentTarget && !creating) {
                 setShowCreateModal(false);
@@ -345,8 +349,9 @@ export function OrganizationSwitcher() {
                 </form>
               </motion.div>
             </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
