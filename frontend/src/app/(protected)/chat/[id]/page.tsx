@@ -103,7 +103,7 @@ export default function ChatPage() {
             body: JSON.stringify({
               message: content,
               chat_id: chatId,
-              model: "gemini",
+              model: "gemini-1.5-flash",
               stream: true,
             }),
           }

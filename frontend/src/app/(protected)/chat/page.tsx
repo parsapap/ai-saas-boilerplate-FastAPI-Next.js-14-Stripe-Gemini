@@ -63,7 +63,7 @@ export default function NewChatPage() {
         },
         body: JSON.stringify({
           message: content,
-          model: "gemini",
+          model: "gemini-1.5-flash",
           stream: true,
         }),
       });
