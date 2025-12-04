@@ -28,10 +28,18 @@ async def create_api_key(
     )
     
     # Return with full key (only time it's visible)
-    response = ApiKeyWithSecret.model_validate(api_key)
-    response.key = full_key
-    
-    return response
+    return ApiKeyWithSecret(
+        id=api_key.id,
+        name=api_key.name,
+        key_prefix=api_key.key_prefix,
+        organization_id=api_key.organization_id,
+        created_by=api_key.created_by,
+        last_used_at=api_key.last_used_at,
+        is_active=api_key.is_active,
+        created_at=api_key.created_at,
+        expires_at=api_key.expires_at,
+        key=full_key
+    )
 
 
 @router.get("/", response_model=List[ApiKeyResponse])
