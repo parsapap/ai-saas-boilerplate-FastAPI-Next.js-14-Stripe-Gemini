@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -25,7 +25,7 @@ const menuItems = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
-export function Sidebar() {
+function SidebarComponent() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { subscription, currentPlan } = useSubscription();
@@ -143,3 +143,5 @@ export function Sidebar() {
     </>
   );
 }
+
+export const Sidebar = memo(SidebarComponent);

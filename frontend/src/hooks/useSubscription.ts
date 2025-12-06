@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 
 interface Subscription {
@@ -31,18 +31,21 @@ export const planDetails = {
   },
 };
 
-// Cache to prevent multiple simultaneous requests
+// Global cache to prevent multiple simultaneous requests across all components
 let cachedSubscription: Subscription | null = null;
 let cacheTimestamp: number = 0;
 let pendingRequest: Promise<Subscription | null> | null = null;
-const CACHE_DURATION = 60000; // 1 minute
+const CACHE_DURATION = 300000; // 5 minutes
 
 export function useSubscription(autoFetch = true) {
   const [subscription, setSubscription] = useState<Subscription | null>(cachedSubscription);
   const [isLoading, setIsLoading] = useState(!cachedSubscription);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
-    if (autoFetch) {
+    // Only fetch once per component mount
+    if (autoFetch && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       loadSubscription();
     }
   }, [autoFetch]);
@@ -52,7 +55,9 @@ export function useSubscription(autoFetch = true) {
       // Return cached data if still valid
       const now = Date.now();
       if (cachedSubscription && now - cacheTimestamp < CACHE_DURATION) {
-        setSubscription(cachedSubscription);
+        if (subscription !== cachedSubscription) {
+          setSubscription(cachedSubscription);
+        }
         setIsLoading(false);
         return cachedSubscription;
       }
@@ -60,7 +65,9 @@ export function useSubscription(autoFetch = true) {
       // If there's already a pending request, wait for it
       if (pendingRequest) {
         const result = await pendingRequest;
-        setSubscription(result);
+        if (subscription !== result) {
+          setSubscription(result);
+        }
         setIsLoading(false);
         return result;
       }
@@ -85,7 +92,9 @@ export function useSubscription(autoFetch = true) {
         });
 
       const result = await pendingRequest;
-      setSubscription(result);
+      if (subscription !== result) {
+        setSubscription(result);
+      }
       return result;
     } catch (error) {
       console.error("Failed to load subscription:", error);
