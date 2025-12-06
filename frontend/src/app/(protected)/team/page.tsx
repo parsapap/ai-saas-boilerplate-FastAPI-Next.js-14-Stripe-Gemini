@@ -216,12 +216,12 @@ export default function TeamPage() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
                       <span className="text-lg font-semibold">
-                        {member.full_name?.charAt(0) || member.email.charAt(0).toUpperCase()}
+                        {member.full_name?.charAt(0)?.toUpperCase() || member.email?.charAt(0)?.toUpperCase() || "?"}
                       </span>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">{member.full_name || "Pending"}</h3>
-                      <p className="text-sm text-white/60">{member.email}</p>
+                      <p className="text-sm text-white/60">{member.email || "No email"}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <RoleIcon className={`w-4 h-4 ${roleColor}`} />
                         <span className={`text-sm capitalize ${roleColor}`}>
