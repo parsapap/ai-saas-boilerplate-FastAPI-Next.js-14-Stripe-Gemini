@@ -6,7 +6,7 @@ import { CreditCard, ExternalLink, Calendar, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, clearSubscriptionCache } from "@/hooks/useSubscription";
 
 export default function BillingPage() {
   const [isCreatingPortal, setIsCreatingPortal] = useState(false);
@@ -26,6 +26,8 @@ export default function BillingPage() {
       );
 
       if (response.data.portal_url) {
+        // Clear cache so fresh data is fetched when user returns
+        clearSubscriptionCache();
         window.location.href = response.data.portal_url;
       }
     } catch (error: any) {

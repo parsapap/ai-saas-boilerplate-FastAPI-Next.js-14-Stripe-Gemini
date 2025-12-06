@@ -31,23 +31,65 @@ export const planDetails = {
   },
 };
 
-export function useSubscription() {
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Cache to prevent multiple simultaneous requests
+let cachedSubscription: Subscription | null = null;
+let cacheTimestamp: number = 0;
+let pendingRequest: Promise<Subscription | null> | null = null;
+const CACHE_DURATION = 60000; // 1 minute
+
+export function useSubscription(autoFetch = true) {
+  const [subscription, setSubscription] = useState<Subscription | null>(cachedSubscription);
+  const [isLoading, setIsLoading] = useState(!cachedSubscription);
 
   useEffect(() => {
-    loadSubscription();
-  }, []);
+    if (autoFetch) {
+      loadSubscription();
+    }
+  }, [autoFetch]);
 
   const loadSubscription = async () => {
     try {
-      const response = await api.get("/api/v1/billing/subscription", {
-        headers: { "X-Current-Org": "1" },
-      });
-      console.log("Subscription data:", response.data);
-      setSubscription(response.data);
+      // Return cached data if still valid
+      const now = Date.now();
+      if (cachedSubscription && now - cacheTimestamp < CACHE_DURATION) {
+        setSubscription(cachedSubscription);
+        setIsLoading(false);
+        return cachedSubscription;
+      }
+
+      // If there's already a pending request, wait for it
+      if (pendingRequest) {
+        const result = await pendingRequest;
+        setSubscription(result);
+        setIsLoading(false);
+        return result;
+      }
+
+      // Make new request
+      setIsLoading(true);
+      pendingRequest = api
+        .get("/api/v1/billing/subscription", {
+          headers: { "X-Current-Org": "1" },
+        })
+        .then((response) => {
+          cachedSubscription = response.data;
+          cacheTimestamp = Date.now();
+          return response.data;
+        })
+        .catch((error) => {
+          console.error("Failed to load subscription:", error);
+          return null;
+        })
+        .finally(() => {
+          pendingRequest = null;
+        });
+
+      const result = await pendingRequest;
+      setSubscription(result);
+      return result;
     } catch (error) {
       console.error("Failed to load subscription:", error);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -63,4 +105,11 @@ export function useSubscription() {
     isLoading,
     refetch: loadSubscription,
   };
+}
+
+// Helper to clear cache when needed (e.g., after plan upgrade)
+export function clearSubscriptionCache() {
+  cachedSubscription = null;
+  cacheTimestamp = 0;
+  pendingRequest = null;
 }
