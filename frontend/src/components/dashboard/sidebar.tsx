@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { api } from "@/lib/api";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -28,9 +29,41 @@ const publicMenuItems = [
   { icon: CreditCard, label: "Pricing", href: "/pricing" },
 ];
 
+interface Subscription {
+  plan_type: string;
+  status: string;
+}
+
+const planDetails = {
+  FREE: { name: "Free", limit: "100 messages/month" },
+  PRO: { name: "Pro", limit: "10,000 messages/month" },
+  TEAM: { name: "Team", limit: "Unlimited messages" },
+};
+
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    loadSubscription();
+  }, []);
+
+  const loadSubscription = async () => {
+    try {
+      const response = await api.get("/api/v1/billing/subscription", {
+        headers: { "X-Current-Org": "1" },
+      });
+      console.log("Subscription data:", response.data);
+      setSubscription(response.data);
+    } catch (error) {
+      console.error("Failed to load subscription:", error);
+    }
+  };
+
+  const currentPlan = subscription
+    ? planDetails[subscription.plan_type?.toUpperCase() as keyof typeof planDetails] || planDetails.FREE
+    : planDetails.FREE;
 
   return (
     <>
@@ -110,13 +143,35 @@ export function Sidebar() {
             transition={{ delay: 0.3 }}
             className="p-4 rounded-lg bg-white/5 border border-white/10"
           >
-            <div className="text-sm font-medium mb-1">Free Plan</div>
-            <div className="text-xs text-white/60 mb-3">
-              100 messages / month
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-sm font-medium">{currentPlan.name} Plan</div>
+              {subscription?.status && (
+                <div className="px-2 py-0.5 text-xs rounded bg-green-500/20 text-green-400 capitalize">
+                  {subscription.status}
+                </div>
+              )}
             </div>
-            <button className="w-full px-3 py-2 text-sm bg-white text-black rounded-lg hover:bg-white/90 transition-colors duration-200">
-              Upgrade
-            </button>
+            <div className="text-xs text-white/60 mb-3">
+              {currentPlan.limit}
+            </div>
+            {subscription?.plan_type?.toUpperCase() === "FREE" && (
+              <Link
+                href="/pricing"
+                onClick={() => setIsOpen(false)}
+                className="block w-full px-3 py-2 text-sm text-center bg-white text-black rounded-lg hover:bg-white/90 transition-colors duration-200"
+              >
+                Upgrade
+              </Link>
+            )}
+            {subscription?.plan_type?.toUpperCase() !== "FREE" && (
+              <Link
+                href="/billing"
+                onClick={() => setIsOpen(false)}
+                className="block w-full px-3 py-2 text-sm text-center bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors duration-200"
+              >
+                Manage
+              </Link>
+            )}
           </motion.div>
         </div>
       </motion.aside>
