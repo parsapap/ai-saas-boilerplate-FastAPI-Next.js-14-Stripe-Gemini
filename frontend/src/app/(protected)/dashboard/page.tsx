@@ -109,7 +109,9 @@ export default function DashboardPage() {
           >
             <div className="text-sm text-white/60">Current Plan</div>
             <div className="text-lg font-semibold">{getPlanDisplayName(subscription.plan_type)}</div>
-            <div className="text-xs text-white/40 mt-1">Click to upgrade</div>
+            <div className="text-xs text-white/40 mt-1">
+              {subscription.plan_type.toLowerCase() === 'free' ? '✨ Click to upgrade' : '⚙️ Manage plan'}
+            </div>
           </motion.button>
         )}
       </motion.div>
