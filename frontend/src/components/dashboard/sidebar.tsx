@@ -34,10 +34,10 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Hamburger Menu Button - Visible on all screen sizes */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-black/50 backdrop-blur-xl border border-white/10"
+        className="fixed top-4 left-4 z-[60] p-2 rounded-lg bg-black/80 backdrop-blur-xl border border-white/10 hover:bg-black/90 transition-colors"
       >
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -55,14 +55,14 @@ export function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - Toggleable on all screen sizes */}
       <motion.aside
         initial={false}
         animate={{
           x: isOpen ? 0 : "-100%",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="lg:translate-x-0 fixed lg:sticky top-0 left-0 h-screen w-64 bg-black/40 backdrop-blur-xl border-r border-white/10 z-40 flex flex-col"
+        className="fixed top-0 left-0 h-screen w-64 bg-black/40 backdrop-blur-xl border-r border-white/10 z-50 flex flex-col"
       >
         <div className="p-6">
           <motion.div
