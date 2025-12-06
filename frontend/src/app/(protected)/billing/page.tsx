@@ -87,7 +87,7 @@ export default function BillingPage() {
   };
 
   const currentPlan = subscription
-    ? planDetails[subscription.plan_type as keyof typeof planDetails]
+    ? planDetails[subscription.plan_type as keyof typeof planDetails] || planDetails.FREE
     : planDetails.FREE;
 
   return (
