@@ -98,15 +98,19 @@ export default function DashboardPage() {
           <p className="text-white/60">Welcome back! Here&apos;s your overview</p>
         </div>
         {subscription && (
-          <motion.div
+          <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             transition={{ delay: 0.2 }}
-            className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl"
+            onClick={() => router.push('/pricing')}
+            className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 backdrop-blur-xl hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-pointer"
           >
             <div className="text-sm text-white/60">Current Plan</div>
             <div className="text-lg font-semibold">{getPlanDisplayName(subscription.plan_type)}</div>
-          </motion.div>
+            <div className="text-xs text-white/40 mt-1">Click to upgrade</div>
+          </motion.button>
         )}
       </motion.div>
 
