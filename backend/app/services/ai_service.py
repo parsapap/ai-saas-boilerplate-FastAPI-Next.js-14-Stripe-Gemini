@@ -108,6 +108,8 @@ class AIService:
             # Check for API errors
             if response.status_code != 200:
                 error_msg = result.get("error", {}).get("message", str(result))
+                if response.status_code == 429:
+                    raise Exception("Rate limit exceeded. The AI service has reached its daily limit. Please try again later or contact support.")
                 raise Exception(f"OpenRouter API error ({response.status_code}): {error_msg}")
             
             if "choices" not in result or len(result["choices"]) == 0:
@@ -169,23 +171,45 @@ class AIService:
                 },
                 timeout=60.0,
             ) as response:
+                logger.info(f"OpenRouter streaming response status: {response.status_code}")
+                
+                if response.status_code != 200:
+                    error_text = await response.aread()
+                    error_data = json.loads(error_text.decode())
+                    error_msg = error_data.get("error", {}).get("message", "Unknown error")
+                    logger.error(f"OpenRouter error ({response.status_code}): {error_msg}")
+                    
+                    # Return user-friendly error message
+                    if response.status_code == 429:
+                        yield "⚠️ Rate limit exceeded. The AI service has reached its daily limit. Please try again later or contact support."
+                    else:
+                        yield f"⚠️ AI service error: {error_msg}"
+                    return
+                
                 async for line in response.aiter_lines():
                     line = line.strip()
                     if not line:
                         continue
+                    
+                    logger.debug(f"Received line: {line[:200]}")
                         
                     if line.startswith("data: "):
                         data = line[6:].strip()
                         if data == "[DONE]":
+                            logger.info("Received [DONE] signal")
                             break
                         
                         try:
                             chunk_data = json.loads(data)
+                            logger.debug(f"Parsed chunk: {chunk_data}")
                             if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
                                 delta = chunk_data["choices"][0].get("delta", {})
                                 content = delta.get("content", "")
                                 if content:
+                                    logger.debug(f"Yielding content: {content}")
                                     yield content
+                            else:
+                                logger.warning(f"No choices in chunk: {chunk_data}")
                         except json.JSONDecodeError as e:
                             logger.error(f"Failed to parse SSE data: {data[:100]}")
                         except Exception as e:
