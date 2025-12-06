@@ -11,6 +11,33 @@
 
 **Used by 10+ AI startups** | **Available for hire** | [Live Demo](https://ai-saas.up.railway.app/docs)
 
+## 📁 Project Structure
+
+```
+├── backend/              # FastAPI backend
+│   ├── app/
+│   │   ├── api/         # API routes
+│   │   ├── core/        # Core configuration
+│   │   ├── crud/        # Database operations
+│   │   ├── models/      # SQLAlchemy models
+│   │   └── schemas/     # Pydantic schemas
+├── frontend/            # Next.js 14 frontend
+│   ├── src/
+│   │   ├── app/         # App router pages
+│   │   ├── components/  # React components
+│   │   ├── hooks/       # Custom hooks
+│   │   ├── lib/         # Utilities
+│   │   └── store/       # State management
+├── docs/                # Documentation
+│   ├── guides/          # Setup & usage guides
+│   ├── milestones/      # Development milestones
+│   └── summaries/       # Project summaries
+└── scripts/             # Utility scripts
+    ├── deployment/      # Deployment scripts
+    ├── stripe/          # Stripe utilities
+    └── tests/           # Test scripts
+```
+
 ---
 
 ## ✨ Features
@@ -373,6 +400,24 @@ This boilerplate is used by 10+ AI startups in production. Need help with:
 - Team training
 
 **Contact**: [Your Email] | [Your LinkedIn] | [Your Website]
+
+---
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[Quick Start Guides](docs/guides/)** - Get up and running quickly
+- **[Architecture Docs](docs/)** - System design and architecture
+- **[API Reference](docs/BACKEND_ENDPOINTS.md)** - Complete API documentation
+- **[Development Milestones](docs/milestones/)** - Feature development history
+- **[Scripts Reference](scripts/README.md)** - Available utility scripts
+
+### Key Documents
+- [Getting Started](docs/guides/GETTING_STARTED.md) - First-time setup
+- [Start Services](docs/guides/START_SERVICES.md) - Running the application
+- [Stripe Setup](docs/guides/STRIPE_SETUP_STEPS.md) - Payment integration
+- [Manual Testing](docs/guides/MANUAL_TEST_GUIDE.md) - Testing guide
 
 ---
 
