@@ -82,6 +82,11 @@ export default function NewChatPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("Chat API error:", response.status, errorData);
+        console.error("Request details:", {
+          url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/ai/chat/stream`,
+          orgId,
+          hasToken: !!token
+        });
         
         // Handle 401 - redirect to login
         if (response.status === 401) {
@@ -89,6 +94,16 @@ export default function NewChatPage() {
           localStorage.removeItem("refresh_token");
           window.location.href = "/login";
           throw new Error("Session expired. Please login again.");
+        }
+        
+        // Handle 402 - no subscription
+        if (response.status === 402) {
+          throw new Error("No active subscription. Please upgrade your plan or contact support.");
+        }
+        
+        // Handle 403 - not a member
+        if (response.status === 403) {
+          throw new Error("You are not a member of this organization. Please select a different organization.");
         }
         
         // Handle different error formats
@@ -114,26 +129,44 @@ export default function NewChatPage() {
         throw new Error("No reader available");
       }
 
+      console.log("Starting to read stream...");
       let accumulatedContent = "";
+      let buffer = "";
+      let chunkCount = 0;
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
+          console.log("Stream reading done");
           break;
         }
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
+        const decoded = decoder.decode(value, { stream: true });
+        console.log("Raw chunk received:", decoded);
+        buffer += decoded;
+        const lines = buffer.split("\n");
+        
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
+          console.log("Processing line:", line);
           if (line.startsWith("data: ")) {
             const data = line.slice(6).trim();
-            if (data === "[DONE]" || !data) {
+            if (data === "[DONE]") {
+              console.log("Received [DONE] signal");
+              continue;
+            }
+            if (!data) {
+              console.log("Empty data, skipping");
               continue;
             }
 
-            // The backend sends plain text chunks, not JSON
+            chunkCount++;
+            console.log(`Chunk #${chunkCount}:`, data);
+            
+            // Backend sends plain text chunks directly
             accumulatedContent += data;
 
             // Update message with accumulated content
@@ -148,6 +181,8 @@ export default function NewChatPage() {
         }
       }
 
+      console.log(`Stream complete. Received ${chunkCount} chunks. Total content length: ${accumulatedContent.length}`);
+      console.log("Final content:", accumulatedContent);
       setIsStreaming(false);
     } catch (error: any) {
       console.error("Chat error:", error);
