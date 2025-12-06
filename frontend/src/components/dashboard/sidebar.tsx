@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { api } from "@/lib/api";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -25,45 +25,10 @@ const menuItems = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
-const publicMenuItems = [
-  { icon: CreditCard, label: "Pricing", href: "/pricing" },
-];
-
-interface Subscription {
-  plan_type: string;
-  status: string;
-}
-
-const planDetails = {
-  FREE: { name: "Free", limit: "100 messages/month" },
-  PRO: { name: "Pro", limit: "10,000 messages/month" },
-  TEAM: { name: "Team", limit: "Unlimited messages" },
-};
-
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const pathname = usePathname();
-
-  useEffect(() => {
-    loadSubscription();
-  }, []);
-
-  const loadSubscription = async () => {
-    try {
-      const response = await api.get("/api/v1/billing/subscription", {
-        headers: { "X-Current-Org": "1" },
-      });
-      console.log("Subscription data:", response.data);
-      setSubscription(response.data);
-    } catch (error) {
-      console.error("Failed to load subscription:", error);
-    }
-  };
-
-  const currentPlan = subscription
-    ? planDetails[subscription.plan_type?.toUpperCase() as keyof typeof planDetails] || planDetails.FREE
-    : planDetails.FREE;
+  const { subscription, currentPlan } = useSubscription();
 
   return (
     <>
