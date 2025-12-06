@@ -41,6 +41,40 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     
     # Create user
     user = await crud_user.create_user(db, user_in=user_in, stripe_customer_id=stripe_customer_id)
+    
+    # Create default organization for new user
+    from app.crud import organization as crud_org
+    from app.crud import subscription as crud_subscription
+    from app.models.subscription import PlanType
+    from app.schemas.organization import OrganizationCreate
+    import re
+    
+    # Generate slug from email
+    email_prefix = user_in.email.split('@')[0]
+    slug = re.sub(r'[^a-z0-9-]', '-', email_prefix.lower())
+    slug = re.sub(r'-+', '-', slug).strip('-')  # Remove multiple dashes
+    
+    # Ensure unique slug
+    base_slug = slug
+    counter = 1
+    while await crud_org.get_organization_by_slug(db, slug):
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+    
+    org_in = OrganizationCreate(
+        name=f"{user_in.full_name}'s Organization" if user_in.full_name else "My Organization",
+        slug=slug,
+        description="Default organization"
+    )
+    org = await crud_org.create_organization(db, org_in, user.id)
+    
+    # Create FREE subscription for the organization
+    await crud_subscription.create_subscription(
+        db,
+        org_id=org.id,
+        plan_type=PlanType.FREE
+    )
+    
     return user
 
 

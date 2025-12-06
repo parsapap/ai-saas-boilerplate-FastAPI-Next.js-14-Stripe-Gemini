@@ -32,6 +32,9 @@ async def create_organization(
     current_user: User = Depends(get_current_active_user)
 ):
     """Create a new organization (user becomes owner)"""
+    from app.crud import subscription as crud_subscription
+    from app.models.subscription import PlanType
+    
     # Check if slug already exists
     existing = await crud_org.get_organization_by_slug(db, org_in.slug)
     if existing:
@@ -41,6 +44,14 @@ async def create_organization(
         )
     
     org = await crud_org.create_organization(db, org_in, current_user.id)
+    
+    # Create FREE subscription for new organization
+    await crud_subscription.create_subscription(
+        db,
+        org_id=org.id,
+        plan_type=PlanType.FREE
+    )
+    
     return org
 
 

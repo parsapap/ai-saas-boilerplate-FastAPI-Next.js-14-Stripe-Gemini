@@ -105,6 +105,14 @@ class AIService:
             
             result = response.json()
             
+            # Check for API errors
+            if response.status_code != 200:
+                error_msg = result.get("error", {}).get("message", str(result))
+                raise Exception(f"OpenRouter API error ({response.status_code}): {error_msg}")
+            
+            if "choices" not in result or len(result["choices"]) == 0:
+                raise Exception(f"Invalid API response: {json.dumps(result)}")
+            
             return {
                 "message": result["choices"][0]["message"]["content"],
                 "usage": {
