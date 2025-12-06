@@ -44,9 +44,20 @@ async def update_subscription_from_stripe(
     stripe_subscription: dict
 ) -> Subscription:
     """Update subscription from Stripe webhook data"""
+    from app.core.stripe_config import get_plan_from_price_id
+    
     subscription.stripe_subscription_id = stripe_subscription.get("id")
     subscription.status = SubscriptionStatus(stripe_subscription.get("status"))
-    subscription.stripe_price_id = stripe_subscription["items"]["data"][0]["price"]["id"]
+    
+    # Get price ID and update plan type
+    price_id = stripe_subscription["items"]["data"][0]["price"]["id"]
+    subscription.stripe_price_id = price_id
+    
+    # Map price ID to plan type
+    plan_type = get_plan_from_price_id(price_id)
+    if plan_type:
+        subscription.plan_type = plan_type
+    
     subscription.amount = stripe_subscription["items"]["data"][0]["price"]["unit_amount"] / 100
     subscription.currency = stripe_subscription["items"]["data"][0]["price"]["currency"]
     subscription.current_period_start = datetime.fromtimestamp(stripe_subscription.get("current_period_start"))

@@ -1,5 +1,6 @@
 from app.models.subscription import PlanType
 from decimal import Decimal
+from typing import Optional
 
 # Stripe Price IDs (replace with your actual IDs from Stripe Dashboard)
 STRIPE_PRICES = {
@@ -7,6 +8,9 @@ STRIPE_PRICES = {
     PlanType.PRO: "price_1SaL4MJQFLCmojG3bVa6HbGt",  # Pro Plan - $29/month
     PlanType.TEAM: "price_1SaL8SJQFLCmojG3vspXn8TA",  # Team Plan - $99/month
 }
+
+# Reverse mapping: Price ID to Plan Type
+PRICE_TO_PLAN = {v: k for k, v in STRIPE_PRICES.items() if v is not None}
 
 # Plan configurations
 PLAN_CONFIGS = {
@@ -79,3 +83,8 @@ PLAN_LIMITS = {
 def get_plan_limit(plan_type: PlanType, limit_name: str) -> int | None:
     """Get a specific limit for a plan"""
     return PLAN_LIMITS.get(plan_type, {}).get(limit_name)
+
+
+def get_plan_from_price_id(price_id: str) -> Optional[PlanType]:
+    """Get plan type from Stripe price ID"""
+    return PRICE_TO_PLAN.get(price_id)
