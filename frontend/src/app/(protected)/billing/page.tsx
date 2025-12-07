@@ -20,12 +20,30 @@ export default function BillingPage() {
     const canceled = searchParams.get("canceled");
     
     if (success === "true") {
-      // User completed checkout, clear cache and refetch
-      clearSubscriptionCache();
-      setTimeout(() => {
-        refetch();
-        toast.success("Subscription updated successfully!");
-      }, 2000); // Wait 2 seconds for Stripe webhook to process
+      // User completed checkout, sync subscription from Stripe
+      const syncSubscription = async () => {
+        try {
+          clearSubscriptionCache();
+          
+          // Call sync endpoint to fetch latest data from Stripe
+          await api.post(
+            "/api/v1/billing/sync-subscription",
+            {},
+            {
+              headers: { "X-Current-Org": localStorage.getItem("current_org_id") || "1" },
+            }
+          );
+          
+          // Refetch subscription data
+          await refetch();
+          toast.success("Subscription updated successfully!");
+        } catch (error: any) {
+          console.error("Failed to sync subscription:", error);
+          toast.error("Failed to update subscription. Please refresh the page.");
+        }
+      };
+      
+      syncSubscription();
     } else if (canceled === "true") {
       toast.info("Checkout canceled");
     }

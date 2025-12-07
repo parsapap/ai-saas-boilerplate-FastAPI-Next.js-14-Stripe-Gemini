@@ -170,6 +170,61 @@ async def create_customer_portal_session(
         )
 
 
+@router.post("/sync-subscription")
+async def sync_subscription_from_stripe(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    current_org: Organization = Depends(get_current_organization)
+):
+    """Manually sync subscription from Stripe (fallback when webhooks don't work)"""
+    init_stripe()
+    
+    if not current_org.stripe_customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Stripe customer found"
+        )
+    
+    try:
+        # Get all subscriptions for this customer
+        subscriptions = stripe.Subscription.list(
+            customer=current_org.stripe_customer_id,
+            limit=1,
+            status='active'
+        )
+        
+        if subscriptions.data:
+            stripe_subscription = subscriptions.data[0]
+            
+            # Get or create subscription record
+            subscription = await crud_subscription.get_subscription_by_org(db, current_org.id)
+            if not subscription:
+                subscription = await crud_subscription.create_subscription(
+                    db, current_org.id, PlanType.FREE, current_org.stripe_customer_id
+                )
+            
+            # Update from Stripe
+            await crud_subscription.update_subscription_from_stripe(db, subscription, stripe_subscription)
+            
+            logger.info(f"Manually synced subscription for org {current_org.id}")
+            return {"status": "success", "plan_type": subscription.plan_type}
+        else:
+            # No active subscription, ensure FREE plan
+            subscription = await crud_subscription.get_subscription_by_org(db, current_org.id)
+            if subscription and subscription.plan_type != PlanType.FREE:
+                subscription.plan_type = PlanType.FREE
+                await db.commit()
+            
+            return {"status": "success", "plan_type": "free"}
+    
+    except Exception as e:
+        logger.error(f"Failed to sync subscription: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.post("/webhook/stripe")
 async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Stripe webhooks"""
