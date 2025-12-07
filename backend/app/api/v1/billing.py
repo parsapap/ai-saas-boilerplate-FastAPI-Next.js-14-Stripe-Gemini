@@ -232,15 +232,17 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
     
+    logger.info(f"Webhook received, signature present: {bool(sig_header)}")
+    
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
-    except ValueError:
-        logger.error("Invalid payload")
+    except ValueError as e:
+        logger.error(f"Invalid payload: {e}")
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        logger.error("Invalid signature")
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {e}. Make sure STRIPE_WEBHOOK_SECRET matches the one from 'stripe listen' CLI")
         raise HTTPException(status_code=400, detail="Invalid signature")
     
     # Handle the event
@@ -277,24 +279,40 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
 
 async def handle_checkout_completed(db: AsyncSession, session: dict):
     """Handle successful checkout"""
-    org_id = int(session["metadata"]["organization_id"])
-    plan_type = PlanType(session["metadata"]["plan_type"])
+    logger.info(f"Processing checkout.session.completed: {session.get('id')}")
+    logger.info(f"Session metadata: {session.get('metadata')}")
+    
+    metadata = session.get("metadata", {})
+    if not metadata.get("organization_id"):
+        logger.error(f"No organization_id in session metadata: {metadata}")
+        return
+    
+    org_id = int(metadata["organization_id"])
+    plan_type = PlanType(metadata["plan_type"])
+    
+    logger.info(f"Updating org {org_id} to plan {plan_type}")
     
     # Get subscription from Stripe
-    stripe_subscription_id = session["subscription"]
+    stripe_subscription_id = session.get("subscription")
+    if not stripe_subscription_id:
+        logger.error("No subscription ID in checkout session")
+        return
+        
     stripe_subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+    logger.info(f"Retrieved Stripe subscription: {stripe_subscription_id}")
     
     # Get or create subscription record
     subscription = await crud_subscription.get_subscription_by_org(db, org_id)
     if not subscription:
+        logger.info(f"Creating new subscription for org {org_id}")
         subscription = await crud_subscription.create_subscription(
-            db, org_id, plan_type, session["customer"]
+            db, org_id, plan_type, session.get("customer")
         )
     
     # Update subscription from Stripe data (this will set the correct plan based on price_id)
     await crud_subscription.update_subscription_from_stripe(db, subscription, stripe_subscription)
     
-    logger.info(f"Checkout completed for org {org_id}, plan: {subscription.plan_type}")
+    logger.info(f"✅ Checkout completed for org {org_id}, plan updated to: {subscription.plan_type}")
 
 
 async def handle_subscription_updated(db: AsyncSession, subscription_data: dict):
