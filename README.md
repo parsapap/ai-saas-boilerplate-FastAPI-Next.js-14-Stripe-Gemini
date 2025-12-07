@@ -9,15 +9,15 @@ Production-ready **FastAPI + Next.js 14** boilerplate with multi-tenancy, Stripe
 
 ## 📸 Screenshots
 
-| Dashboard | AI Chat |
+| AI Chat | Billing |
 |-----------|---------|
 | ![Dashboard](screenshots/dashboard.png) | ![Chat](screenshots/chat.png) |
 
-| Billing | Admin Panel |
+| Stripe | Hamburger Menu |
 |---------|-------------|
 | ![Billing](screenshots/billing.png) | ![Admin](screenshots/admin.png) |
 
-| Login | API Docs |
+| Pricing | Dashboard |
 |-------|----------|
 | ![Login](screenshots/login.png) | ![API Docs](screenshots/api-docs.png) |
 
