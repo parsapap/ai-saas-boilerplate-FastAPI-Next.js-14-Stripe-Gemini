@@ -7,6 +7,20 @@ Production-ready **FastAPI + Next.js 14** boilerplate with multi-tenancy, Stripe
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![Stripe](https://img.shields.io/badge/Stripe-Integrated-008CDD.svg?style=flat&logo=stripe&logoColor=white)](https://stripe.com)
 
+## 📸 Screenshots
+
+| Dashboard | AI Chat |
+|-----------|---------|
+| ![Dashboard](screenshots/dashboard.png) | ![Chat](screenshots/chat.png) |
+
+| Billing | Admin Panel |
+|---------|-------------|
+| ![Billing](screenshots/billing.png) | ![Admin](screenshots/admin.png) |
+
+| Login | API Docs |
+|-------|----------|
+| ![Login](screenshots/login.png) | ![API Docs](screenshots/api-docs.png) |
+
 ## ✨ Features
 
 | Feature | Description |
