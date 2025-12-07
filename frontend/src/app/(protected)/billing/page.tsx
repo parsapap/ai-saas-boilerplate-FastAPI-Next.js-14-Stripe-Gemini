@@ -1,16 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, ExternalLink, Calendar, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
 import { useSubscription, clearSubscriptionCache } from "@/hooks/useSubscription";
+import { useSearchParams } from "next/navigation";
 
 export default function BillingPage() {
   const [isCreatingPortal, setIsCreatingPortal] = useState(false);
-  const { subscription, currentPlan, isLoading } = useSubscription();
+  const { subscription, currentPlan, isLoading, refetch } = useSubscription();
+  const searchParams = useSearchParams();
+
+  // Clear cache and refetch when returning from Stripe
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    
+    if (success === "true") {
+      // User completed checkout, clear cache and refetch
+      clearSubscriptionCache();
+      setTimeout(() => {
+        refetch();
+        toast.success("Subscription updated successfully!");
+      }, 2000); // Wait 2 seconds for Stripe webhook to process
+    } else if (canceled === "true") {
+      toast.info("Checkout canceled");
+    }
+  }, [searchParams, refetch]);
 
   const openCustomerPortal = async () => {
     setIsCreatingPortal(true);

@@ -45,6 +45,8 @@ async def update_subscription_from_stripe(
 ) -> Subscription:
     """Update subscription from Stripe webhook data"""
     from app.core.stripe_config import get_plan_from_price_id
+    import logging
+    logger = logging.getLogger(__name__)
     
     subscription.stripe_subscription_id = stripe_subscription.get("id")
     subscription.status = SubscriptionStatus(stripe_subscription.get("status"))
@@ -53,10 +55,15 @@ async def update_subscription_from_stripe(
     price_id = stripe_subscription["items"]["data"][0]["price"]["id"]
     subscription.stripe_price_id = price_id
     
+    logger.info(f"Updating subscription with price_id: {price_id}")
+    
     # Map price ID to plan type
     plan_type = get_plan_from_price_id(price_id)
     if plan_type:
+        logger.info(f"Mapped price_id {price_id} to plan_type: {plan_type}")
         subscription.plan_type = plan_type
+    else:
+        logger.warning(f"Could not map price_id {price_id} to a plan_type. Current plan: {subscription.plan_type}")
     
     subscription.amount = stripe_subscription["items"]["data"][0]["price"]["unit_amount"] / 100
     subscription.currency = stripe_subscription["items"]["data"][0]["price"]["currency"]

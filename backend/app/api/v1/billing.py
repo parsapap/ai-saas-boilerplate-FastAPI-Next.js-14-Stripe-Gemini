@@ -236,11 +236,10 @@ async def handle_checkout_completed(db: AsyncSession, session: dict):
             db, org_id, plan_type, session["customer"]
         )
     
-    # Update subscription
-    subscription.plan_type = plan_type
+    # Update subscription from Stripe data (this will set the correct plan based on price_id)
     await crud_subscription.update_subscription_from_stripe(db, subscription, stripe_subscription)
     
-    logger.info(f"Checkout completed for org {org_id}, plan: {plan_type}")
+    logger.info(f"Checkout completed for org {org_id}, plan: {subscription.plan_type}")
 
 
 async def handle_subscription_updated(db: AsyncSession, subscription_data: dict):
