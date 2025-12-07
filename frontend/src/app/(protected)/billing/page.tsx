@@ -52,13 +52,19 @@ export default function BillingPage() {
   const openCustomerPortal = async () => {
     setIsCreatingPortal(true);
     try {
+      const orgId = localStorage.getItem('current_org_id');
+      if (!orgId) {
+        toast.error('Please select an organization');
+        setIsCreatingPortal(false);
+        return;
+      }
       const response = await api.post(
         "/api/v1/billing/portal",
         {
           return_url: `${window.location.origin}/billing`,
         },
         {
-          headers: { "X-Current-Org": "1" },
+          headers: { "X-Current-Org": orgId },
         }
       );
 

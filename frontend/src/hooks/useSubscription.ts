@@ -74,9 +74,14 @@ export function useSubscription(autoFetch = true) {
 
       // Make new request
       setIsLoading(true);
+      const orgId = typeof window !== 'undefined' ? localStorage.getItem('current_org_id') : null;
+      if (!orgId) {
+        setIsLoading(false);
+        return null;
+      }
       pendingRequest = api
         .get("/api/v1/billing/subscription", {
-          headers: { "X-Current-Org": "1" },
+          headers: { "X-Current-Org": orgId },
         })
         .then((response) => {
           cachedSubscription = response.data;
