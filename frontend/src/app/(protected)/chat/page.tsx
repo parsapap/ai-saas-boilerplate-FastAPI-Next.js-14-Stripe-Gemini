@@ -153,8 +153,8 @@ export default function NewChatPage() {
         for (const line of lines) {
           console.log("Processing line:", line);
           if (line.startsWith("data: ")) {
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") {
+            const data = line.slice(6);  // Don't trim - preserve spaces
+            if (data.trim() === "[DONE]") {
               console.log("Received [DONE] signal");
               continue;
             }

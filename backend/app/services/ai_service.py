@@ -72,13 +72,13 @@ class AIService:
         import httpx
         import json
         
-        # Map model name to OpenRouter model names
+        # Map model name to OpenRouter free models
         model_map = {
-            "gemini-1.5-flash": "google/gemini-flash-1.5",
-            "gemini-1.5-pro": "google/gemini-pro-1.5",
-            "gemini-2.0-flash": "google/gemini-2.0-flash-exp:free",
+            "gemini-1.5-flash": "google/gemma-3n-e4b-it:free",
+            "gemini-1.5-pro": "google/gemma-3n-e4b-it:free",
+            "gemini-2.0-flash": "google/gemma-3n-e4b-it:free",
         }
-        openrouter_model = model_map.get(model, "google/gemini-2.0-flash-exp:free")
+        openrouter_model = model_map.get(model, "google/gemma-3n-e4b-it:free")
         
         # Convert messages to OpenRouter format
         openrouter_messages = [
@@ -135,13 +135,13 @@ class AIService:
         """Gemini streaming via OpenRouter"""
         import httpx
         
-        # Map model name to OpenRouter model names
+        # Map model name to OpenRouter free models
         model_map = {
-            "gemini-1.5-flash": "google/gemini-flash-1.5",
-            "gemini-1.5-pro": "google/gemini-pro-1.5",
-            "gemini-2.0-flash": "google/gemini-2.0-flash-exp:free",
+            "gemini-1.5-flash": "google/gemma-3n-e4b-it:free",
+            "gemini-1.5-pro": "google/gemma-3n-e4b-it:free",
+            "gemini-2.0-flash": "google/gemma-3n-e4b-it:free",
         }
-        openrouter_model = model_map.get(model, "google/gemini-2.0-flash-exp:free")
+        openrouter_model = model_map.get(model, "google/gemma-3n-e4b-it:free")
         
         # Convert messages to OpenRouter format
         openrouter_messages = [
@@ -153,6 +153,8 @@ class AIService:
         import json
         import logging
         logger = logging.getLogger(__name__)
+        
+        logger.info(f"Using OpenRouter model: {openrouter_model}")
         
         async with httpx.AsyncClient() as client:
             async with client.stream(
